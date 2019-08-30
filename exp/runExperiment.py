@@ -16,11 +16,17 @@ def runExp():
 
     cfg = {}
 
+    cfg['expstart'] = time.time()
+
     # get participant number and set random seed:
     cfg = getParticipant(cfg, individualStimOrder=True)
 
     # create Window object and home, cursor, target, and aiming arrow
+    # and a self-define mouse object
     cfg = createEnvironment(cfg)
+
+    # add all the tasks
+    cfg = createTasks(cfg)
 
     # run the actual experiment, catch errors to cleanly exit:
     try:
@@ -98,13 +104,18 @@ def createEnvironment(cfg):
     cfg['arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=2, lineColorSpace='rgb', lineColor='#CC00CC', fillColorSpace='rgb', fillColor='#CC00CC', vertices=arrowvertices, closeShape=True, size=20)
 
     class myMouse:
+
+        def __init__(self,cfg):
+
             self.psyMouse = event.Mouse(visible = False, newPos = None, win = cfg['win'])
 
- 	    def Pos(self):
- 	     	[X,Y] = self.psyMouse.getPos()
- 	     	return [X,Y,time.time()]
+        def getPos(self):
 
-	cfg['mouse'] = myMouse(cfg)
+            [X,Y] = self.psyMouse.getPos()
+            return [X,Y,time.time()]
+
+    cfg['mouse'] = myMouse(cfg)
+
     return(cfg)
 
 def cleanlyExit(cfg):
@@ -118,12 +129,81 @@ def cleanlyExit(cfg):
     return(cfg)
 
 
+def createTasks(cfg):
+
+    # we'll put all the tasks in a list, so we can do them one by one:
+    tasks = []
+
+    # depending on participant number the tasks will be determined
+    # or should we ask for group/condition on start-up?
+
+    # first aligned training
+    # 32 trials?
+
+    # first aligned no-cursor
+    # 8 trials
+
+    # second aligned training
+    # 16 trials (with aiming for group 4?)
+
+    # second aligned no-cursor
+    # 8 trials
+
+    # ===== break? =====
+    # potentially tell experimentor to give instructions
+
+    # first rotated training
+    # 80 (groups 1, 2, and 3) or 8 trials (groups 4 and 5)
+
+    # first rotated PDP (group 1, 2, 3 and 5) or block of aiming trials (group 4)
+    # 8 (group 4) or 16 trials (group 1, 2, 3 and 5)?
+
+    # second rotated training
+    # 16 trials (groups 1, 2 and 3)
+    # 72 trials (groups 4 and 5)
+
+    # second rotated PDP (all groups)
+    # 16 trials
+
+    #
 
 
 
+    cfg['tasks'] = tasks
+
+    return(cfg)
 
 
+def doTasks(cfg):
 
+    # loop through the cfg['tasks']
+    # cfg['taskno'] = ...
+    # before each task, show an instruction on the screen (if not empty)
+
+    # tasks should be named, for easier PDP analysis
+
+    # loop through the trials within the task
+    # cfg['trialno'] = ...
+    # cfg['totrialno'] = ...
+
+    # doTrial()
+
+    # at the end of all tasks, combine into one dataset (csv)
+
+    return(cfg)
+
+def doTrial(cfg):
+
+    # trials need to know which target to use
+    # trials need to know whether or not there is a cursor
+    # trials need to know whether to do aiming (or a pause)
+
+    # phase 1: get cursor on home
+    # phase 2: aim (with target!) / pause (with target?)
+    # phase 3: reach for target (end by reaching target or by stopping movement)
+    # phase 4: return home (with cursor, or with home-arrow feedback)
+
+    # store the data frame as csv file...
 
 
 
