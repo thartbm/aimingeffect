@@ -97,6 +97,14 @@ def createEnvironment(cfg):
     arrowvertices = ((-.5,-.5),(4,-.5),(4,-1),(5,0),(4,1),(4,.5),(-.5,.5))
     cfg['arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=2, lineColorSpace='rgb', lineColor='#CC00CC', fillColorSpace='rgb', fillColor='#CC00CC', vertices=arrowvertices, closeShape=True, size=20)
 
+    class myMouse:
+            self.psyMouse = event.Mouse(visible = False, newPos = None, win = cfg['win'])
+
+ 	    def Pos(self):
+ 	     	[X,Y] = self.psyMouse.getPos()
+ 	     	return [X,Y,time.time()]
+
+	cfg['mouse'] = myMouse(cfg)
     return(cfg)
 
 def cleanlyExit(cfg):
