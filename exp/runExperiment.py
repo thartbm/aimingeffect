@@ -47,6 +47,29 @@ def runExp():
 
 def getParticipant(cfg, individualStimOrder=True):
 
+    GroupNotANumber = True
+
+    # and we will only be happy when this is the case:
+    while (GroupNotANumber):
+        # we ask for input:
+        print('1: non-instructed\n2: instructed\n3: aiming\n4: early PDP\n5: early aiming')
+        group = input('Enter group number: ')
+        # and try to see if we can convert it to an integer
+        try:
+            groupno = int(group)
+            # and if that integer really reflects the input
+            if (group == '%d'%(groupno)):
+                # and is a number 1, 2, 3, 4, or 5...
+                if (groupno in [1,2,3,4,5]):
+                    # only then are we satisfied:
+                    GroupNotANumber = False
+                    # and store this in the cfg
+                    cfg['groupno'] = groupno
+                    cfg['groupname'] = ['non-instructed','instructed','aiming','early_PDP','early_aiming'][groupno-1]
+        except:
+            # if it all doesn't work, we ask for input again...
+            pass
+
     # we need to get an integer number as participant ID:
     IDnotANumber = True
 
@@ -67,27 +90,10 @@ def getParticipant(cfg, individualStimOrder=True):
             # if it all doesn't work, we ask for input again...
             pass
 
-    GroupNotANumber = True
+    # do we need to check if the participant already exists in the group?
 
-    # and we will only be happy when this is the case:
-    while (GroupNotANumber):
-        # we ask for input:
-        print('1: non-instructed\n2: instructed\n3: aiming\n4: early PDP\n5: early aiming')
-        group = input('Enter group number: ')
-        # and try to see if we can convert it to an integer
-        try:
-            groupno = int(group)
-            # and if that integer really reflects the input
-            if (group == '%d'%(groupno)):
-                # and is a number 1, 2, 3, 4, or 5...
-                if (groupno in [1,2,3,4,5]):
-                    # only then are we satisfied:
-                    GroupNotANumber = False
-                    # and store this in the cfg
-                    cfg['group'] = groupno
-        except:
-            # if it all doesn't work, we ask for input again...
-            pass
+
+
     # we need to seed the random number generator one way or another...
 
     # should this depend on participant number?
@@ -113,13 +119,15 @@ def createEnvironment(cfg):
         os.mkdir('data')
 
     # instantiate a window object:
-    cfg['win'] = visual.Window(fullscr=False, units='pix', waitBlanking=True, viewScale=[2/3,-2/3])
+    cfg['win'] = visual.Window(fullscr=False, units='pix', waitBlanking=True, viewScale=[2/3,-2/3], color=[-1,-1,-1])
 
     cfg['home'] = visual.Circle(win=cfg['win'], pos=cfg['homepos'], radius=50, lineWidth=2, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
 
     cfg['cursor'] = visual.Circle(win=cfg['win'], radius=50, lineWidth=2, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor='#999999')
 
     cfg['target'] = visual.Circle(win=cfg['win'], radius=50, lineWidth=2, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
+
+    cfg['instruction'] = visual.TextStim(win=cfg['win'], text='', pos=[0,0], colorSpace='rgb', color='#999999', flipVert=True)
 
     arrowvertices = ((-.5,-.5),(4,-.5),(4,-1),(5,0),(4,1),(4,.5),(-.5,.5))
     cfg['arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=2, lineColorSpace='rgb', lineColor='#CC00CC', fillColorSpace='rgb', fillColor='#CC00CC', vertices=arrowvertices, closeShape=True, size=20)
@@ -158,7 +166,7 @@ def createTasks(cfg):
     targets = [((ta+22.5)/180)*sp.pi for ta in list(range(0,360,45))]
     cfg['targets'] = targets
 
-    group = cfg['group']
+    groupno = cfg['groupno']
 
     # depending on participant number the tasks will be determined
     # or should we ask for group/condition on start-up?
@@ -174,11 +182,11 @@ def createTasks(cfg):
                         'reach without cursor',
                         'reach for target',
                         'reach without cursor']
-    if group == 3:
+    if groupno == 3:
         taskaiming = [True,False,True,False]
         taskinstructions[0] = 'aim and reach for target'
         taskinstructions[2] = 'aim and reach for target'
-    if group == 5:
+    if groupno == 5:
         taskaiming = [False,False,True,False]
         taskinstructions[2] = 'aim and reach for target'
 
@@ -189,12 +197,12 @@ def createTasks(cfg):
 
         for iter in range(int(tasktrials[taskno]/len(targets))):
             random.shuffle(targets)
-            ttargets.append(targets)
-            trotation.append(sp.repeat(taskrotation[taskno],len(targets)))
-            taiming.append(sp.repeat(taskaiming[taskno],len(targets)))
-            tcursor.append(sp.repeat(taskcursor[taskno],len(targets)))
+            ttargets = ttargets + targets
+            trotation = trotation + list(sp.repeat(taskrotation[taskno],len(targets)))
+            taiming = taiming + list(sp.repeat(taskaiming[taskno],len(targets)))
+            tcursor = tcursor + list(sp.repeat(taskcursor[taskno],len(targets)))
 
-        taskdict = {'targets':ttargets,'rotation':trotation,'aiming':taiming,'cursor':tcursor,'instruction':taskinstructions[taskno]}
+        taskdict = {'target':ttargets,'rotation':trotation,'aiming':taiming,'cursor':tcursor,'instruction':taskinstructions[taskno]}
         tasks.append(taskdict)
 
     # first aligned no-cursor
@@ -231,19 +239,54 @@ def createTasks(cfg):
 
 def doTasks(cfg):
 
-    # loop through the cfg['tasks']
-    # cfg['taskno'] = ...
-    # before each task, show an instruction on the screen (if not empty)
+    cfg['totrialno'] = 0
 
-    # tasks should be named, for easier PDP analysis
+    for taskno in list(range(len(cfg['tasks']))):
 
-    # loop through the trials within the task
-    # cfg['trialno'] = ...
-    # cfg['totrialno'] = ...
+        cfg['taskno'] = taskno
 
-    # doTrial()
+        cfg = showInstruction(cfg)
+
+        task = cfg['tasks'][taskno]
+
+        for trialno in list(range(len(task['target']))):
+
+            cfg['trialno'] = trialno
+
+            cfg = doTrial(cfg)
+
+            cfg['totrialno'] += 1
+
+    print(cfg['totrialno'])
 
     # at the end of all tasks, combine into one dataset (csv)
+
+    return(cfg)
+
+def showInstruction(cfg):
+
+    instruction = cfg['tasks'][cfg['taskno']]['instruction']
+
+    if (len(instruction)):
+
+        cfg['instruction'].text = instruction
+
+        event.clearEvents()
+
+        waitingForSpace = True
+
+        while waitingForSpace:
+
+            keys = event.getKeys(keyList=['space'])
+
+            if ('space' in keys):
+
+                waitingForSpace = False
+
+            cfg['instruction'].draw()
+            cfg['win'].flip()
+
+
 
     return(cfg)
 
@@ -260,7 +303,7 @@ def doTrial(cfg):
 
     # store the data frame as csv file...
 
-    pass
+    return(cfg)
 
 
 runExp()
