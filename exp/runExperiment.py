@@ -297,9 +297,17 @@ def doTrial(cfg):
     targetpos = [sp.cos(targetangle)*cfg['targetdistance'], sp.sin(targetangle)*cfg['targetdistance']]
     cfg['target'].pos = targetpos
 
-    # trials need to know whether or not there is a cursor
-    # trials need to know whether to do aiming (or a pause)
+    # do pre-reach aiming if required:
+    if cfg['tasks'][cfg['taskno']]['aiming'][cfg['trialno']]:
 
+        cfg = doAiming(cfg)
+
+    print([targetangle,targetpos])
+    # trials need to know whether or not there is a cursor
+    showcursor = cfg['tasks'][cfg['taskno']]['cursor'][cfg['trialno']]
+
+
+    # phase 0: aiming?
     # phase 1: get cursor on home
     # phase 2: aim (with target!) / pause (with target?)
     # phase 3: reach for target (end by reaching target or by stopping movement)
@@ -307,9 +315,19 @@ def doTrial(cfg):
 
     # store the data frame as csv file...
 
-    print(cfg['mouse'].getPos())
+    #print(cfg['mouse'].getPos())
 
     cfg['target'].draw()
+    cfg['win'].flip()
+
+    return(cfg)
+
+
+def doAiming(cfg):
+
+    cfg['target'].draw()
+    cfg['arrow'].ori = cfg['tasks'][cfg['taskno']]['target'][cfg['trialno']]
+    cfg['arrow'].draw()
     cfg['win'].flip()
 
     return(cfg)
