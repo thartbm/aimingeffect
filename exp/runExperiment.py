@@ -67,6 +67,27 @@ def getParticipant(cfg, individualStimOrder=True):
             # if it all doesn't work, we ask for input again...
             pass
 
+    GroupNotANumber = True
+
+    # and we will only be happy when this is the case:
+    while (GroupNotANumber):
+        # we ask for input:
+        print('1: non-instructed\n2: instructed\n3: aiming\n4: early PDP\n5: early aiming')
+        group = input('Enter group number: ')
+        # and try to see if we can convert it to an integer
+        try:
+            groupno = int(group)
+            # and if that integer really reflects the input
+            if (group == '%d'%(groupno)):
+                # and is a number 1, 2, 3, 4, or 5...
+                if (groupno in [1,2,3,4,5]):
+                    # only then are we satisfied:
+                    GroupNotANumber = False
+                    # and store this in the cfg
+                    cfg['group'] = groupno
+        except:
+            # if it all doesn't work, we ask for input again...
+            pass
     # we need to seed the random number generator one way or another...
 
     # should this depend on participant number?
@@ -134,11 +155,47 @@ def createTasks(cfg):
     # we'll put all the tasks in a list, so we can do them one by one:
     tasks = []
 
+    targets = [((ta+22.5)/180)*sp.pi for ta in list(range(0,360,45))]
+    cfg['targets'] = targets
+
+    group = cfg['group']
+
     # depending on participant number the tasks will be determined
     # or should we ask for group/condition on start-up?
 
     # first aligned training
     # 32 trials?
+
+    tasktrials = [32,8,16,8]
+    taskrotation = [0,0,0,0]
+    taskaiming = [False,False,False,False]
+    taskcursor = [True,False,True,False]
+    taskinstructions = ['reach for target',
+                        'reach without cursor',
+                        'reach for target',
+                        'reach without cursor']
+    if group == 3:
+        taskaiming = [True,False,True,False]
+        taskinstructions[0] = 'aim and reach for target'
+        taskinstructions[2] = 'aim and reach for target'
+    if group == 5:
+        taskaiming = [False,False,True,False]
+        taskinstructions[2] = 'aim and reach for target'
+
+
+    for taskno in range(len(tasktrials)):
+
+        ttargets, trotation, taiming, tcursor = [], [], [], []
+
+        for iter in range(int(tasktrials[taskno]/len(targets))):
+            random.shuffle(targets)
+            ttargets.append(targets)
+            trotation.append(sp.repeat(taskrotation[taskno],len(targets)))
+            taiming.append(sp.repeat(taskaiming[taskno],len(targets)))
+            tcursor.append(sp.repeat(taskcursor[taskno],len(targets)))
+
+        taskdict = {'targets':ttargets,'rotation':trotation,'aiming':taiming,'cursor':tcursor,'instruction':taskinstructions[taskno]}
+        tasks.append(taskdict)
 
     # first aligned no-cursor
     # 8 trials
@@ -167,7 +224,7 @@ def createTasks(cfg):
 
     #
 
-
+    print(tasks)
 
     cfg['tasks'] = tasks
 
@@ -205,7 +262,7 @@ def doTrial(cfg):
 
     # store the data frame as csv file...
 
-
+    pass
 
 
 runExp()
