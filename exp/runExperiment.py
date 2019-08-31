@@ -121,11 +121,11 @@ def createEnvironment(cfg):
     # instantiate a window object:
     cfg['win'] = visual.Window(fullscr=False, units='pix', waitBlanking=True, viewScale=[2/3,-2/3], color=[-1,-1,-1])
 
-    cfg['home'] = visual.Circle(win=cfg['win'], pos=cfg['homepos'], radius=50, lineWidth=2, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
+    cfg['home'] = visual.Circle(win=cfg['win'], pos=cfg['homepos'], radius=50, lineWidth=5, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
 
-    cfg['cursor'] = visual.Circle(win=cfg['win'], radius=50, lineWidth=2, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor='#999999')
+    cfg['cursor'] = visual.Circle(win=cfg['win'], radius=50, lineWidth=5, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor='#999999')
 
-    cfg['target'] = visual.Circle(win=cfg['win'], radius=50, lineWidth=2, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
+    cfg['target'] = visual.Circle(win=cfg['win'], radius=50, lineWidth=5, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
 
     cfg['instruction'] = visual.TextStim(win=cfg['win'], text='', pos=[0,0], colorSpace='rgb', color='#999999', flipVert=True)
 
@@ -292,7 +292,11 @@ def showInstruction(cfg):
 
 def doTrial(cfg):
 
-    # trials need to know which target to use
+    # set up the target:
+    targetangle = cfg['tasks'][cfg['taskno']]['target'][cfg['trialno']]
+    targetpos = [sp.cos(targetangle)*cfg['targetdistance'], sp.sin(targetangle)*cfg['targetdistance']]
+    cfg['target'].pos = targetpos
+
     # trials need to know whether or not there is a cursor
     # trials need to know whether to do aiming (or a pause)
 
@@ -302,6 +306,11 @@ def doTrial(cfg):
     # phase 4: return home (with cursor, or with home-arrow feedback)
 
     # store the data frame as csv file...
+
+    print(cfg['mouse'].getPos())
+
+    cfg['target'].draw()
+    cfg['win'].flip()
 
     return(cfg)
 
