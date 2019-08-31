@@ -224,8 +224,6 @@ def createTasks(cfg):
 
     #
 
-    print(tasks)
-
     cfg['tasks'] = tasks
 
     return(cfg)
