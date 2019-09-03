@@ -111,8 +111,6 @@ def createEnvironment(cfg):
 
     cfg['homepos'] = [0,0]
 
-    cfg['targetdistance'] = 400
-
     cfg['targetangles'] = [((ta+22.5)/180)*sp.pi for ta in list(range(0,360,45))]
 
     # need to check if the folder for data is there:
@@ -121,25 +119,29 @@ def createEnvironment(cfg):
         os.mkdir('data')
 
     # instantiate a window object:
-    cfg['win'] = visual.Window(fullscr=True, units='pix', waitBlanking=True, viewScale=[0.72,-0.72], color=[-1,-1,-1])
+    cfg['win'] = visual.Window(fullscr=False, units='pix', waitBlanking=True, viewScale=[0.72,0.72], color=[-1,-1,-1])
 
     # set up the workspace as a function of the size of the window:
     winSize = cfg['win'].size
 
-    cfg['NSU'] = min(winSize) * 0.75
+    cfg['NSU'] = min(winSize) * 0.4
+
+    cfg['targetdistance'] = cfg['NSU']
 
     # set up visual objects for use in experiment:
-    cfg['home'] = visual.Circle(win=cfg['win'], pos=cfg['homepos'], radius=cfg['NSU']*0.025, lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
+    cfg['home'] = visual.Circle(win=cfg['win'], pos=cfg['homepos'], radius=cfg['NSU']*0.05, lineWidth=cfg['NSU']*0.01, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
 
-    cfg['cursor'] = visual.Circle(win=cfg['win'], radius=cfg['NSU']*0.025, lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor='#999999')
+    cfg['cursor'] = visual.Circle(win=cfg['win'], radius=cfg['NSU']*0.05, lineWidth=cfg['NSU']*0.01, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor='#999999')
 
-    cfg['target'] = visual.Circle(win=cfg['win'], radius=cfg['NSU']*0.025, lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
+    cfg['target'] = visual.Circle(win=cfg['win'], radius=cfg['NSU']*0.05, lineWidth=cfg['NSU']*0.01, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
 
     cfg['instruction'] = visual.TextStim(win=cfg['win'], text='', pos=[0,0], colorSpace='rgb', color='#999999', flipVert=True)
 
     arrowvertices = ((-.33,-.33),(4.33,-.33),(4,-1),(6,0),(4,1),(4.33,.33),(-.33,.33))
-    cfg['arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#CC00CC', fillColorSpace='rgb', fillColor='#CC00CC', vertices=arrowvertices, closeShape=True, size=cfg['NSU']*(0.2/6))
+    cfg['aim_arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=0, lineColorSpace='rgb', lineColor='#CC00CC', fillColorSpace='rgb', fillColor='#CC00CC', vertices=arrowvertices, closeShape=True, size=cfg['NSU']*(0.2/6))
 
+    arrowvertices = ((-.25,-.25),(.5,0),(-.25,.25),(0,0))
+    cfg['home_arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=0, lineColorSpace='rgb', lineColor='#000000', fillColorSpace='rgb', fillColor='#999999', vertices=arrowvertices, closeShape=True, size=cfg['NSU']*0.025)
 
     # set up 'mouse' object to track reaches:
     class myMouse:
@@ -313,28 +315,94 @@ def doTrial(cfg):
     targetpos = [sp.cos(targetangle)*cfg['targetdistance'], sp.sin(targetangle)*cfg['targetdistance']]
     cfg['target'].pos = targetpos
 
-    # do pre-reach aiming if required:
+    # phase 0: do pre-reach aiming if required:
     if cfg['tasks'][cfg['taskno']]['aiming'][cfg['trialno']]:
 
         cfg = doAiming(cfg)
+        aim = cfg['aim']
 
-    print([targetangle,targetpos])
+    else:
+
+        # if not required: set to correct value for data file:
+        aim = sp.NaN
+
     # trials need to know whether or not there is a cursor
     showcursor = cfg['tasks'][cfg['taskno']]['cursor'][cfg['trialno']]
 
+    # set up rotation matrix for current rotation:
+    rotation = cfg['tasks'][cfg['taskno']]['rotation'][cfg['trialno']]
+    theta = (rotation/180.)*sp.pi
+    R = sp.array([[sp.cos(theta),-1*sp.sin(theta)],[sp.sin(theta),sp.cos(theta)]],order='C')
 
-    # phase 0: aiming?
-    # phase 1: get cursor on home
-    # phase 2: aim (with target!) / pause (with target?)
-    # phase 3: reach for target (end by reaching target or by stopping movement)
-    # phase 4: return home (with cursor, or with home-arrow feedback)
 
-    # store the data frame as csv file...
+    trialDone = False
+    phase = 1
 
-    #print(cfg['mouse'].getPos())
+    # create lists to store data in:
+    mouseX = []
+    mouseY = []
+    cursorX = []
+    cursorY = []
+    time = []
 
-    cfg['target'].draw()
-    cfg['win'].flip()
+
+    while not(trialDone):
+
+        [X,Y,T] = cfg['mouse'].getPos()
+
+        cursorpos = list(R.dot(sp.array([[X],[Y]])).flatten())
+        cfg['cursor'].pos = cursorpos
+        cursorangle = sp.arctan2(cursorpos[1],cursorpos[0])
+
+        mouseX.append(X)
+        mouseY.append(Y)
+        cursorX.append(cursorpos[0])
+        cursorY.append(cursorpos[1])
+        time.append(T)
+
+        if (phase == 2):
+            cfg['target'].draw()
+            if showcursor:
+                cfg['cursor'].draw()
+                if ( sp.sqrt( sp.sum( (sp.array(cursorpos) - sp.array(targetpos))**2 ) ) ) < (0.05 * cfg['NSU']):
+                    phase = 3
+            else:
+                idx = sp.argmin( sp.abs( sp.array(time)-0.250 ) )
+                distance = sp.sqrt(sp.diff(sp.array([mouseX[idx:]]))**2 + sp.diff(sp.array([mouseY[idx:]]))**2)
+                if distance < (0.01 * cfg['NSU']):
+                    phase = 3
+
+        if (phase == 1) or (phase == 3):
+            cfg['home'].draw()
+            if showcursor:
+                cfg['cursor'].draw()
+            else:
+                if (sp.sqrt(sum([c**2 for c in cursorpos])) < (0.10 * cfg['NSU'])):
+                    cfg['cursor'].draw()
+                else:
+                    # put arrow in home position
+                    grain = (2*sp.pi)/8
+                    arrowangle = (cursorangle-(grain/2) // grain) * grain
+                    cfg['home_arrow'].ori = -1 * arrowangle
+                    cfg['home_arrow'].draw()
+            #print([sp.sqrt(sp.sum(sp.array(cursorpos)**2)), (0.025 * cfg['NSU'])])
+            if (sp.sqrt(sp.sum(sp.array(cursorpos)**2)) < (0.025 * cfg['NSU'])):
+                if phase == 1:
+                    phase = 2
+                if phase == 3:
+                    trialDone = True
+
+        #cfg['target'].draw()
+        cfg['win'].flip()
+
+    # make data frame and store as csv file...
+
+
+
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
 
     return(cfg)
 
@@ -342,8 +410,8 @@ def doTrial(cfg):
 def doAiming(cfg):
 
     cfg['target'].draw()
-    cfg['arrow'].ori = -1 * cfg['tasks'][cfg['taskno']]['target'][cfg['trialno']]
-    cfg['arrow'].draw()
+    cfg['aim_arrow'].ori = -1 * cfg['tasks'][cfg['taskno']]['target'][cfg['trialno']]
+    cfg['aim_arrow'].draw()
     cfg['win'].flip()
 
     aimDecided = False
@@ -354,19 +422,19 @@ def doAiming(cfg):
 
         keys = event.getKeys(keyList=['num_enter'])
         if ('num_enter' in keys):
-            aim = -1 * cfg['arrow'].ori
+            cfg['aim'] = -1 * cfg['aim_arrow'].ori
             aimDecided = True
 
-        #if cfg['keyboard'][key.NUM_ENTER]:
-        #    # aim = -1 * cfg['arrow'].ori
-        #    aimDecided = True
         if cfg['keyboard'][key.NUM_LEFT]:
-            cfg['arrow'].ori = cfg['arrow'].ori - 1
+            cfg['aim_arrow'].ori = cfg['aim_arrow'].ori - 1
+            print(cfg['aim_arrow'].ori)
         if cfg['keyboard'][key.NUM_RIGHT]:
-            cfg['arrow'].ori = cfg['arrow'].ori + 1
+            cfg['aim_arrow'].ori = cfg['aim_arrow'].ori + 1
+            print(cfg['aim_arrow'].ori)
+        #print(cfg['keyboard'])
 
         cfg['target'].draw()
-        cfg['arrow'].draw()
+        cfg['aim_arrow'].draw()
         cfg['win'].flip()
 
 
