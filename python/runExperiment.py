@@ -121,37 +121,44 @@ def createEnvironment(cfg):
         os.mkdir('data')
 
     # instantiate a window object:
-    cfg['win'] = visual.Window(fullscr=False, units='pix', waitBlanking=True, viewScale=[2/3,-2/3], color=[-1,-1,-1])
+    cfg['win'] = visual.Window(fullscr=True, units='pix', waitBlanking=True, viewScale=[0.72,-0.72], color=[-1,-1,-1])
 
-    cfg['home'] = visual.Circle(win=cfg['win'], pos=cfg['homepos'], radius=50, lineWidth=5, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
+    # set up the workspace as a function of the size of the window:
+    winSize = cfg['win'].size
 
-    cfg['cursor'] = visual.Circle(win=cfg['win'], radius=50, lineWidth=5, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor='#999999')
+    cfg['NSU'] = min(winSize) * 0.75
 
-    cfg['target'] = visual.Circle(win=cfg['win'], radius=50, lineWidth=5, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
+    # set up visual objects for use in experiment:
+    cfg['home'] = visual.Circle(win=cfg['win'], pos=cfg['homepos'], radius=cfg['NSU']*0.025, lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
+
+    cfg['cursor'] = visual.Circle(win=cfg['win'], radius=cfg['NSU']*0.025, lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor='#999999')
+
+    cfg['target'] = visual.Circle(win=cfg['win'], radius=cfg['NSU']*0.025, lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
 
     cfg['instruction'] = visual.TextStim(win=cfg['win'], text='', pos=[0,0], colorSpace='rgb', color='#999999', flipVert=True)
 
     arrowvertices = ((-.33,-.33),(4.33,-.33),(4,-1),(6,0),(4,1),(4.33,.33),(-.33,.33))
-    cfg['arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=2, lineColorSpace='rgb', lineColor='#CC00CC', fillColorSpace='rgb', fillColor='#CC00CC', vertices=arrowvertices, closeShape=True, size=15)
+    cfg['arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#CC00CC', fillColorSpace='rgb', fillColor='#CC00CC', vertices=arrowvertices, closeShape=True, size=cfg['NSU']*(0.2/6))
 
+
+    # set up 'mouse' object to track reaches:
     class myMouse:
 
         def __init__(self,cfg):
-
+            # we use a psychopy mouse object
             self.psyMouse = event.Mouse(visible = False, newPos = None, win = cfg['win'])
 
         def getPos(self):
-
+            # but in addition to the position, we also return the time the position was asked for
             [X,Y] = self.psyMouse.getPos()
             return [X,Y,time.time()]
 
     cfg['mouse'] = myMouse(cfg)
 
-    #cfg['keyboard'] = keyboard.Keyboard()
+    # we use a pygame keyboard object for the aiming task responses,
+    # as we need continuous key-down status
     cfg['keyboard'] = key.KeyStateHandler()
     cfg['win'].winHandle.push_handlers(cfg['keyboard'])
-
-    print(cfg['win'].size)
 
     return(cfg)
 
