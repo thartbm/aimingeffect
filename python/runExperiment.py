@@ -4,6 +4,8 @@
 # this experiment is written to be run in Python 3
 
 from psychopy import event, visual
+#from psychopy.hardware import keyboard
+from pyglet.window import key
 import random
 import time
 import scipy as sp
@@ -129,8 +131,8 @@ def createEnvironment(cfg):
 
     cfg['instruction'] = visual.TextStim(win=cfg['win'], text='', pos=[0,0], colorSpace='rgb', color='#999999', flipVert=True)
 
-    arrowvertices = ((-.5,-.5),(4,-.5),(4,-1),(5,0),(4,1),(4,.5),(-.5,.5))
-    cfg['arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=2, lineColorSpace='rgb', lineColor='#CC00CC', fillColorSpace='rgb', fillColor='#CC00CC', vertices=arrowvertices, closeShape=True, size=20)
+    arrowvertices = ((-.33,-.33),(4.33,-.33),(4,-1),(6,0),(4,1),(4.33,.33),(-.33,.33))
+    cfg['arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=2, lineColorSpace='rgb', lineColor='#CC00CC', fillColorSpace='rgb', fillColor='#CC00CC', vertices=arrowvertices, closeShape=True, size=15)
 
     class myMouse:
 
@@ -144,6 +146,12 @@ def createEnvironment(cfg):
             return [X,Y,time.time()]
 
     cfg['mouse'] = myMouse(cfg)
+
+    #cfg['keyboard'] = keyboard.Keyboard()
+    cfg['keyboard'] = key.KeyStateHandler()
+    cfg['win'].winHandle.push_handlers(cfg['keyboard'])
+
+    print(cfg['win'].size)
 
     return(cfg)
 
@@ -163,7 +171,7 @@ def createTasks(cfg):
     # we'll put all the tasks in a list, so we can do them one by one:
     tasks = []
 
-    targets = [((ta+22.5)/180)*sp.pi for ta in list(range(0,360,45))]
+    targets = [ta+22.5 for ta in list(range(0,360,45))]
     cfg['targets'] = targets
 
     groupno = cfg['groupno']
@@ -293,7 +301,8 @@ def showInstruction(cfg):
 def doTrial(cfg):
 
     # set up the target:
-    targetangle = cfg['tasks'][cfg['taskno']]['target'][cfg['trialno']]
+    targetangle_deg = cfg['tasks'][cfg['taskno']]['target'][cfg['trialno']]
+    targetangle = (targetangle_deg/180)*sp.pi
     targetpos = [sp.cos(targetangle)*cfg['targetdistance'], sp.sin(targetangle)*cfg['targetdistance']]
     cfg['target'].pos = targetpos
 
@@ -326,9 +335,33 @@ def doTrial(cfg):
 def doAiming(cfg):
 
     cfg['target'].draw()
-    cfg['arrow'].ori = cfg['tasks'][cfg['taskno']]['target'][cfg['trialno']]
+    cfg['arrow'].ori = -1 * cfg['tasks'][cfg['taskno']]['target'][cfg['trialno']]
     cfg['arrow'].draw()
     cfg['win'].flip()
+
+    aimDecided = False
+
+    event.clearEvents()
+
+    while(not(aimDecided)):
+
+        keys = event.getKeys(keyList=['num_enter'])
+        if ('num_enter' in keys):
+            aim = -1 * cfg['arrow'].ori
+            aimDecided = True
+
+        #if cfg['keyboard'][key.NUM_ENTER]:
+        #    # aim = -1 * cfg['arrow'].ori
+        #    aimDecided = True
+        if cfg['keyboard'][key.NUM_LEFT]:
+            cfg['arrow'].ori = cfg['arrow'].ori - 1
+        if cfg['keyboard'][key.NUM_RIGHT]:
+            cfg['arrow'].ori = cfg['arrow'].ori + 1
+
+        cfg['target'].draw()
+        cfg['arrow'].draw()
+        cfg['win'].flip()
+
 
     return(cfg)
 
