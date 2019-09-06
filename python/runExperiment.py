@@ -93,7 +93,15 @@ def getParticipant(cfg, individualStimOrder=True):
             # if it all doesn't work, we ask for input again...
             pass
 
-    # do we need to check if the participant already exists in the group?
+    # set up folder's for groups and participants to store the data
+
+
+    for thisPath in ['data', 'data/%s'%(cfg['groupname']), 'data/%s/p%03d'%(cfg['groupname'],cfg['ID'])]:
+        if os.path.exists(thisPath):
+            if not(os.path.isdir(thisPath)):
+                sys.exit('"%s" should be a folder'%(thisPath))
+        else:
+            os.mkdir(thisPath)
 
 
 
@@ -128,7 +136,9 @@ def createEnvironment(cfg):
     # we want 8 cm reaches
     # if we apply the viewscale correctly, that should be possible
     # leaving 3.375/2 cm free on top and bottom
-    #
+    # the monitor on the tablet setup is 1680 pixels wide,
+    # and that should span 31 cm on the tablet surface
+
     PPC = max(winSize)/31.
 
     cfg['NSU'] = PPC * 8
