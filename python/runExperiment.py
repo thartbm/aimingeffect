@@ -125,7 +125,13 @@ def createEnvironment(cfg):
     # set up the workspace as a function of the size of the window:
     winSize = cfg['win'].size
 
-    cfg['NSU'] = min(winSize) * 0.4
+    # we want 8 cm reaches
+    # if we apply the viewscale correctly, that should be possible
+    # leaving 3.375/2 cm free on top and bottom
+    #
+    PPC = max(winSize)/31.
+
+    cfg['NSU'] = PPC * 8
 
     cfg['targetdistance'] = cfg['NSU']
 
