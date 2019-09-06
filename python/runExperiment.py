@@ -94,16 +94,12 @@ def getParticipant(cfg, individualStimOrder=True):
             pass
 
     # set up folder's for groups and participants to store the data
-
-
     for thisPath in ['data', 'data/%s'%(cfg['groupname']), 'data/%s/p%03d'%(cfg['groupname'],cfg['ID'])]:
         if os.path.exists(thisPath):
             if not(os.path.isdir(thisPath)):
                 sys.exit('"%s" should be a folder'%(thisPath))
         else:
             os.mkdir(thisPath)
-
-
 
     # we need to seed the random number generator one way or another...
 
@@ -128,7 +124,8 @@ def createEnvironment(cfg):
         os.mkdir('data')
 
     # instantiate a window object:
-    cfg['win'] = visual.Window(fullscr=False, units='pix', waitBlanking=True, viewScale=[0.72,0.72], color=[-1,-1,-1])
+    #cfg['win'] = visual.Window(fullscr=False, units='pix', waitBlanking=True, viewScale=[0.72,0.72], color=[-1,-1,-1])
+    cfg['win'] = visual.Window(fullscr=True, units='pix', waitBlanking=True, viewScale=[0.72,0.72], color=[-1,-1,-1])
 
     # set up the workspace as a function of the size of the window:
     winSize = cfg['win'].size
@@ -212,6 +209,8 @@ def createTasks(cfg):
     taskrotation = [0,0,0,0]
     taskaiming = [False,False,False,False]
     taskcursor = [True,False,True,False]
+    taskcursor = [False] * 4
+    taskstrategy = ['NA',None,'NA',None]
     taskinstructions = ['reach for target',
                         'reach without cursor',
                         'reach for target',
@@ -227,7 +226,7 @@ def createTasks(cfg):
 
     for taskno in range(len(tasktrials)):
 
-        ttargets, trotation, taiming, tcursor = [], [], [], []
+        ttargets, trotation, taiming, tcursor, tstrategy = [], [], [], [], []
 
         for iter in range(int(tasktrials[taskno]/len(targets))):
             random.shuffle(targets)
@@ -235,8 +234,9 @@ def createTasks(cfg):
             trotation = trotation + list(sp.repeat(taskrotation[taskno],len(targets)))
             taiming = taiming + list(sp.repeat(taskaiming[taskno],len(targets)))
             tcursor = tcursor + list(sp.repeat(taskcursor[taskno],len(targets)))
+            tstrategy = tstrategy + list(sp.repeat(taskstrategy[taskno],len(targets)))
 
-        taskdict = {'target':ttargets,'rotation':trotation,'aiming':taiming,'cursor':tcursor,'instruction':taskinstructions[taskno]}
+        taskdict = {'target':ttargets,'rotation':trotation,'aiming':taiming,'cursor':tcursor,'instruction':taskinstructions[taskno],'strategy':tstrategy}
         tasks.append(taskdict)
 
     # first aligned no-cursor
@@ -346,6 +346,9 @@ def doTrial(cfg):
     # trials need to know whether or not there is a cursor
     showcursor = cfg['tasks'][cfg['taskno']]['cursor'][cfg['trialno']]
 
+    # for trials with / without strategy, we should record that:
+    usestrategy = cfg['tasks'][cfg['taskno']]['strategy'][cfg['trialno']]
+
     # set up rotation matrix for current rotation:
     rotation = cfg['tasks'][cfg['taskno']]['rotation'][cfg['trialno']]
     theta = (rotation/180.)*sp.pi
@@ -384,7 +387,8 @@ def doTrial(cfg):
                 if ( sp.sqrt( sp.sum( (sp.array(cursorpos) - sp.array(targetpos))**2 ) ) ) < (0.05 * cfg['NSU']):
                     phase = 3
             else:
-                idx = sp.argmin( sp.abs( sp.array(time)-0.250 ) )
+                #print('no-cursor, phase 2')
+                idx = sp.argmin( abs( sp.array(time_s)-0.250 ) )
                 distance = sp.sqrt(sp.diff(sp.array([mouseX[idx:]]))**2 + sp.diff(sp.array([mouseY[idx:]]))**2)
                 if distance < (0.01 * cfg['NSU']):
                     phase = 3
@@ -394,12 +398,13 @@ def doTrial(cfg):
             if showcursor:
                 cfg['cursor'].draw()
             else:
+                #print('no-cursor, phase 1 or 3')
                 if (sp.sqrt(sum([c**2 for c in cursorpos])) < (0.10 * cfg['NSU'])):
                     cfg['cursor'].draw()
                 else:
                     # put arrow in home position
                     grain = (2*sp.pi)/8
-                    arrowangle = (cursorangle-(grain/2) // grain) * grain
+                    arrowangle = ((cursorangle-(grain/2)) // grain) * grain
                     cfg['home_arrow'].ori = -1 * arrowangle
                     cfg['home_arrow'].draw()
             #print([sp.sqrt(sp.sum(sp.array(cursorpos)**2)), (0.025 * cfg['NSU'])])
@@ -422,6 +427,7 @@ def doTrial(cfg):
     doaiming_bool = [cfg['tasks'][cfg['taskno']]['aiming'][cfg['trialno']]] * nsamples
     showcursor_bool = [showcursor] * nsamples
     # includestrategy_cat !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    usestrategy_cat = [usestrategy] * nsamples
     targetangle_deg = [targetangle_deg] * nsamples
     targetx = [targetpos[0]] * nsamples
     targety = [targetpos[1]] * nsamples
@@ -429,17 +435,16 @@ def doTrial(cfg):
     cutime_ms = [int((t - cfg['expstart']) * 1000) for t in time_s]
     time_ms = [t - cutime_ms[0] for t in cutime_ms]
 
-    # mouseX
-    # mouseY
-    # cursorX
-    # cursorY
     aim_deg = [cfg['aim']] * nsamples
-    aimerror_deg = [(cfg['aim'] - targetangle_deg[0]) % 360] * nsamples
+    aimdeviation_deg = [(cfg['aim'] - targetangle_deg[0]) % 360] * nsamples
 
-    trialdata = {'task_idx':task_idx, 'trial_idx':trial_idx, 'cutrial_no':cutrial_no, 'doaiming_bool':doaiming_bool, 'showcursor_bool':showcursor_bool, 'targetangle_deg':targetangle_deg, 'targetx':targetx, 'targety':targety, 'cutime_ms':cutime_ms, 'time_ms':time_ms, 'mousex':mouseX, 'mousey':mouseY, 'cursorx':cursorX, 'cursory':cursorY, 'aim_deg':aim_deg, 'aimerror_deg':aimerror_deg}
+    # put all lists in dictionary:
+    trialdata = {'task_idx':task_idx, 'trial_idx':trial_idx, 'cutrial_no':cutrial_no, 'doaiming_bool':doaiming_bool, 'showcursor_bool':showcursor_bool, 'usestrategy_cat':usestrategy_cat, 'targetangle_deg':targetangle_deg, 'targetx':targetx, 'targety':targety, 'cutime_ms':cutime_ms, 'time_ms':time_ms, 'mousex':mouseX, 'mousey':mouseY, 'cursorx':cursorX, 'cursory':cursorY, 'aim_deg':aim_deg, 'aimdeviation_deg':aimdeviation_deg}
 
+    # make dictionary into data frame:
     trialdata = pd.DataFrame(trialdata)
 
+    # store data frame:
     filename = 'data/%s/p%03d/task%02d-trial%04d.csv'%(cfg['groupname'],cfg['ID'],cfg['taskno']+1,cfg['trialno']+1)
     trialdata.to_csv( filename, index=False, float_format='%0.5f' )
 
