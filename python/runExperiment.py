@@ -35,10 +35,10 @@ def runExp():
 
         doTasks(cfg)
 
-    except Exception as e:
+    except Exception as err:
 
         # what went wrong?
-        print(e)
+        print(err)
 
     finally:
 
@@ -68,8 +68,9 @@ def getParticipant(cfg, individualStimOrder=True):
                     # and store this in the cfg
                     cfg['groupno'] = groupno
                     cfg['groupname'] = ['non-instructed','instructed','aiming','early_PDP','early_aiming'][groupno-1]
-        except:
+        except Exception as err:
             # if it all doesn't work, we ask for input again...
+            print(err)
             pass
 
     # we need to get an integer number as participant ID:
@@ -343,7 +344,7 @@ def doTrial(cfg):
     mouseY = []
     cursorX = []
     cursorY = []
-    time = []
+    time_s = []
 
 
     while not(trialDone):
@@ -358,7 +359,7 @@ def doTrial(cfg):
         mouseY.append(Y)
         cursorX.append(cursorpos[0])
         cursorY.append(cursorpos[1])
-        time.append(T)
+        time_s.append(T)
 
         if (phase == 2):
             cfg['target'].draw()
@@ -397,11 +398,34 @@ def doTrial(cfg):
 
     # make data frame and store as csv file...
 
+    nsamples = len(time_s)
 
+    task_idx = [cfg['taskno']+1] * nsamples
+    trial_idx = [cfg['trialno']+1] * nsamples
+    cutrial_no = [cfg['totrialno']+1] * nsamples
+    doaiming_bool = [cfg['tasks'][cfg['taskno']]['aiming'][cfg['trialno']]] * nsamples
+    showcursor_bool = [showcursor] * nsamples
+    # includestrategy_cat !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    targetangle_deg = [targetangle_deg] * nsamples
+    targetx = [targetpos[0]] * nsamples
+    targety = [targetpos[1]] * nsamples
 
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    cutime_ms = [int((t - cfg['expstart']) * 1000) for t in time_s]
+    time_ms = [t - cutime_ms[0] for t in cutime_ms]
 
+    # mouseX
+    # mouseY
+    # cursorX
+    # cursorY
+    aim_deg = [cfg['aim']] * nsamples
+    aimerror_deg = [(cfg['aim'] - targetangle_deg[0]) % 360] * nsamples
 
+    trialdata = {'task_idx':task_idx, 'trial_idx':trial_idx, 'cutrial_no':cutrial_no, 'doaiming_bool':doaiming_bool, 'showcursor_bool':showcursor_bool, 'targetangle_deg':targetangle_deg, 'targetx':targetx, 'targety':targety, 'cutime_ms':cutime_ms, 'time_ms':time_ms, 'mousex':mouseX, 'mousey':mouseY, 'cursorx':cursorX, 'cursory':cursorY, 'aim_deg':aim_deg, 'aimerror_deg':aimerror_deg}
+
+    trialdata = pd.DataFrame(trialdata)
+
+    filename = 'data/%s/p%03d/task%02d-trial%04d.csv'%(cfg['groupname'],cfg['ID'],cfg['taskno']+1,cfg['trialno']+1)
+    trialdata.to_csv( filename, index=False, float_format='%0.5f' )
 
 
     return(cfg)
@@ -427,15 +451,23 @@ def doAiming(cfg):
 
         if cfg['keyboard'][key.NUM_LEFT]:
             cfg['aim_arrow'].ori = cfg['aim_arrow'].ori - 1
-            print(cfg['aim_arrow'].ori)
+            #print(cfg['aim_arrow'].ori)
         if cfg['keyboard'][key.NUM_RIGHT]:
             cfg['aim_arrow'].ori = cfg['aim_arrow'].ori + 1
-            print(cfg['aim_arrow'].ori)
+            #print(cfg['aim_arrow'].ori)
         #print(cfg['keyboard'])
+        cfg['aim_arrow'].ori = cfg['aim_arrow'].ori % 360
+
 
         cfg['target'].draw()
         cfg['aim_arrow'].draw()
         cfg['win'].flip()
+
+    #if (cfg['aim'] < 0) or (cfg['aim'] > 360):
+    cfg['aim'] = cfg['aim'] % 360
+
+    #print(cfg['tasks'][cfg['taskno']]['target'][cfg['trialno']])
+    #print(cfg['aim'])
 
 
     return(cfg)
