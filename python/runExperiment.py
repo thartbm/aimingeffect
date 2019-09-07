@@ -204,15 +204,24 @@ def createTasks(cfg):
     targets = [ta+offset for ta in list(range(0,360,45))]
     cfg['targets'] = targets
 
-    aimingoffsets = [-2,2,-4,4,-8,8,-16,16]
+    # aiming arrow shouldn't be straight at the target (especially in the aligned session)
+    # 2~3 degrees looks like 0, and explicit should be between 15 - 30 degrees
+    # so we'll do 5 and 10 degree offsets at random
+    aimingoffsets = [-5,5,-10,10,-5,5,-10,10]
 
     groupno = cfg['groupno']
 
-    # depending on participant number the tasks will be determined
-    # or should we ask for group/condition on start-up?
 
-    # first aligned training
-    # 32 trials?
+    # First "task" is to get instructions from experimenter:
+    taskdict = {'target':[]'rotation':[],'aiming':[], 'aimoffset':[], 'cursor':[],'instruction':'EXPERIMENTER:\ngive instructions part I','strategy':[]}
+    tasks.append(taskdict)
+
+    # participant number determines the order of include / exclude tasks:
+    strategies = ['include','exclude']
+    stratinstr = ['reach without cursor\nUSE your strategy','reach without cursor\ndo NOT use your strategy']
+    if cfg['ID'] % 2:
+        strategies = strategies[::-1]
+        stratinstr = stratinstr[::-1]
 
     tasktrials = [32,8,16,8]
     taskrotation = [0,0,0,0]
@@ -232,6 +241,62 @@ def createTasks(cfg):
         taskinstructions[2] = 'aim and reach for target'
 
 
+    # TASK THAT INSTRUCTS THE EXPERIMENTER?
+
+
+
+    # NOW FOR THE ROTATED PARTs:
+
+    if groupno in [1,2,3]:
+        tasktrials = tasktrials + [80,8,8,16,8,8]
+        taskrotation = taskrotation + [30,30,30,30,30,30]
+        if groupno == 3:
+            taskaiming = taskaiming + [True,False,False,True,False,False]
+        else:
+            taskaiming = taskaiming + [False,False,False,False,False,False]
+        taskcursor = taskcursor + [True,False,False,True,False,False]
+        taskstrategy = taskstrategy + ['NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0]]
+        taskinstructions = taskinstructions + ['reach for target',
+                                                stratinstr[0],
+                                                stratinstr[1],
+                                                'reach for target',
+                                                stratinstr[1],
+                                                stratinstr[0]]
+
+    if groupno == 4: # early PDP
+        tasktrials = tasktrials + [8,8,8,72,8,8,16,8,8]
+        taskrotation = taskrotation + [30,30,30,30,30,30,30,30,30]
+        taskaiming = taskaiming + [False,False,False,False,False,False,False,False,False]
+        taskcursor = taskcursor + [True,False,False,True,False,False,True,False,False]
+        taskstrategy = taskstrategy + ['NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0],'NA',strategies[0],strategies[1]]
+        taskinstructions = taskinstructions + ['reach for target',
+                                                stratinstr[0],
+                                                stratinstr[1],
+                                                'reach for target',
+                                                stratinstr[1],
+                                                stratinstr[0],
+                                                'reach for target',
+                                                stratinstr[0],
+                                                stratinstr[1]]
+
+    if groupno == 5: # early aiming
+        tasktrials = tasktrials + [8,8,64,8,8,16,8,8]
+        taskrotation = taskrotation + [30,30,30,30,30,30,30,30]
+        taskaiming = taskaiming + [False,False,False,False,False,False,False,False,False]
+        taskcursor = taskcursor + [True,True,True,False,False,True,False,False]
+        taskstrategy = taskstrategy + ['NA','NA','NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0]]
+        taskinstructions = taskinstructions + ['reach for target',
+                                                '',
+                                                '',
+                                                stratinstr[0],
+                                                stratinstr[1],
+                                                'reach for target',
+                                                stratinstr[1],
+                                                stratinstr[0]]
+
+
+
+
     for taskno in range(len(tasktrials)):
 
         ttargets, trotation, taiming, taimdev, tcursor, tstrategy = [], [], [], [], [], []
@@ -249,32 +314,10 @@ def createTasks(cfg):
         taskdict = {'target':ttargets,'rotation':trotation,'aiming':taiming, 'aimoffset':taimdev, 'cursor':tcursor,'instruction':taskinstructions[taskno],'strategy':tstrategy}
         tasks.append(taskdict)
 
-    # first aligned no-cursor
-    # 8 trials
-
-    # second aligned training
-    # 16 trials (with aiming for group 4?)
-
-    # second aligned no-cursor
-    # 8 trials
 
     # ===== break? =====
     # potentially tell experimentor to give instructions
 
-    # first rotated training
-    # 80 (groups 1, 2, and 3) or 8 trials (groups 4 and 5)
-
-    # first rotated PDP (group 1, 2, 3 and 5) or block of aiming trials (group 4)
-    # 8 (group 4) or 16 trials (group 1, 2, 3 and 5)?
-
-    # second rotated training
-    # 16 trials (groups 1, 2 and 3)
-    # 72 trials (groups 4 and 5)
-
-    # second rotated PDP (all groups)
-    # 16 trials
-
-    #
 
     cfg['tasks'] = tasks
 
