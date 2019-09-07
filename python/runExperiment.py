@@ -217,7 +217,7 @@ def createTasks(cfg):
 
 
     # First "task" is to get instructions from experimenter:
-    taskdict = {'target':[]'rotation':[],'aiming':[], 'aimoffset':[], 'cursor':[],'instruction':'EXPERIMENTER:\ngive instructions, part ONE (1)','strategy':[]}
+    taskdict = {'target':[],'rotation':[],'aiming':[], 'aimoffset':[], 'cursor':[],'instruction':'EXPERIMENTER:\ngive instructions, part ONE (1)','strategy':[]}
     tasks.append(taskdict)
 
     # participant number determines the order of include / exclude tasks:
@@ -264,16 +264,22 @@ def createTasks(cfg):
         taskrotation = taskrotation + [30,30,30,30,30,30]
         if groupno == 3:
             taskaiming = taskaiming + [True,False,False,True,False,False]
+            taskinstructions = taskinstructions + ['aim and reach for target',
+                                                    stratinstr[0],
+                                                    stratinstr[1],
+                                                    'aim and reach for target',
+                                                    stratinstr[1],
+                                                    stratinstr[0]]
         else:
             taskaiming = taskaiming + [False,False,False,False,False,False]
+            taskinstructions = taskinstructions + ['reach for target',
+                                                    stratinstr[0],
+                                                    stratinstr[1],
+                                                    'reach for target',
+                                                    stratinstr[1],
+                                                    stratinstr[0]]
         taskcursor = taskcursor + [True,False,False,True,False,False]
         taskstrategy = taskstrategy + ['NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0]]
-        taskinstructions = taskinstructions + ['reach for target',
-                                                stratinstr[0],
-                                                stratinstr[1],
-                                                'reach for target',
-                                                stratinstr[1],
-                                                stratinstr[0]]
 
     if groupno == 4: # early PDP
         tasktrials = tasktrials + [8,8,8,72,8,8,16,8,8]
@@ -298,8 +304,8 @@ def createTasks(cfg):
         taskcursor = taskcursor + [True,True,True,False,False,True,False,False]
         taskstrategy = taskstrategy + ['NA','NA','NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0]]
         taskinstructions = taskinstructions + ['reach for target',
-                                                '',
-                                                '',
+                                                'aim and reach for target',
+                                                'reach for target',
                                                 stratinstr[0],
                                                 stratinstr[1],
                                                 'reach for target',
