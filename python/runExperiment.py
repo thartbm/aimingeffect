@@ -142,20 +142,22 @@ def createEnvironment(cfg):
 
     cfg['targetdistance'] = cfg['NSU']
 
+    cfg['radius'] = cfg['NSU']*0.05
+
     # set up visual objects for use in experiment:
-    cfg['home'] = visual.Circle(win=cfg['win'], pos=cfg['homepos'], radius=cfg['NSU']*0.05, lineWidth=cfg['NSU']*0.01, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
+    cfg['home'] = visual.Circle(win=cfg['win'], pos=cfg['homepos'], radius=cfg['radius'], lineWidth=cfg['radius']/5, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
 
-    cfg['cursor'] = visual.Circle(win=cfg['win'], radius=cfg['NSU']*0.05, lineWidth=cfg['NSU']*0.01, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor='#999999')
+    cfg['cursor'] = visual.Circle(win=cfg['win'], radius=cfg['radius'], lineWidth=cfg['radius']/5, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor='#999999')
 
-    cfg['target'] = visual.Circle(win=cfg['win'], radius=cfg['NSU']*0.05, lineWidth=cfg['NSU']*0.01, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
+    cfg['target'] = visual.Circle(win=cfg['win'], radius=cfg['radius'], lineWidth=cfg['radius']/5, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
 
     cfg['instruction'] = visual.TextStim(win=cfg['win'], text='', pos=[0,0], colorSpace='rgb', color='#999999', flipVert=True)
 
     arrowvertices = ((-.33,-.33),(4.33,-.33),(4,-1),(6,0),(4,1),(4.33,.33),(-.33,.33))
     cfg['aim_arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=0, lineColorSpace='rgb', lineColor='#CC00CC', fillColorSpace='rgb', fillColor='#CC00CC', vertices=arrowvertices, closeShape=True, size=cfg['NSU']*(0.2/6))
 
-    arrowvertices = ((-.25,-.25),(.5,0),(-.25,.25),(0,0))
-    cfg['home_arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=0, lineColorSpace='rgb', lineColor='#000000', fillColorSpace='rgb', fillColor='#999999', vertices=arrowvertices, closeShape=True, size=cfg['NSU']*0.025)
+    arrowvertices = ((-.4,-.4),(.8,0),(-.4,.4),(0,0))
+    cfg['home_arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=1, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor='#999999', vertices=arrowvertices, closeShape=True, size=cfg['radius'])
 
     # set up 'mouse' object to track reaches:
     class myMouse:
@@ -209,7 +211,6 @@ def createTasks(cfg):
     taskrotation = [0,0,0,0]
     taskaiming = [False,False,False,False]
     taskcursor = [True,False,True,False]
-    taskcursor = [False] * 4
     taskstrategy = ['NA',None,'NA',None]
     taskinstructions = ['reach for target',
                         'reach without cursor',
@@ -384,14 +385,15 @@ def doTrial(cfg):
             cfg['target'].draw()
             if showcursor:
                 cfg['cursor'].draw()
-                if ( sp.sqrt( sp.sum( (sp.array(cursorpos) - sp.array(targetpos))**2 ) ) ) < (0.05 * cfg['NSU']):
+                if ( sp.sqrt( sp.sum( (sp.array(cursorpos) - sp.array(targetpos))**2 ) ) ) < cfg['radius']:
                     phase = 3
             else:
                 #print('no-cursor, phase 2')
-                idx = sp.argmin( abs( sp.array(time_s)-0.250 ) )
-                distance = sp.sqrt(sp.diff(sp.array([mouseX[idx:]]))**2 + sp.diff(sp.array([mouseY[idx:]]))**2)
-                if distance < (0.01 * cfg['NSU']):
-                    phase = 3
+                idx = sp.argmin( abs( sp.array(time_s)+0.250-time_s[-1] ) )
+                if ( sp.sqrt(mouseX[-1]**2 + mouseY[-1]**2) ) > (cfg['NSU']*.5):
+                    distance = sp.sum( sp.sqrt(sp.diff(sp.array([mouseX[idx:]]))**2 + sp.diff(sp.array([mouseY[idx:]]))**2) )
+                    if distance < (0.01 * cfg['NSU']):
+                        phase = 3
 
         if (phase == 1) or (phase == 3):
             cfg['home'].draw()
@@ -399,16 +401,16 @@ def doTrial(cfg):
                 cfg['cursor'].draw()
             else:
                 #print('no-cursor, phase 1 or 3')
-                if (sp.sqrt(sum([c**2 for c in cursorpos])) < (0.10 * cfg['NSU'])):
+                if (sp.sqrt(sum([c**2 for c in cursorpos])) < (0.15 * cfg['NSU'])):
                     cfg['cursor'].draw()
                 else:
                     # put arrow in home position
                     grain = (2*sp.pi)/8
-                    arrowangle = ((cursorangle-(grain/2)) // grain) * grain
-                    cfg['home_arrow'].ori = -1 * arrowangle
+                    arrowangle = (((cursorangle-(grain/2)) // grain) * grain) + grain
+                    cfg['home_arrow'].ori = ((-1 * arrowangle)/sp.pi)*180
                     cfg['home_arrow'].draw()
             #print([sp.sqrt(sp.sum(sp.array(cursorpos)**2)), (0.025 * cfg['NSU'])])
-            if (sp.sqrt(sp.sum(sp.array(cursorpos)**2)) < (0.025 * cfg['NSU'])):
+            if (sp.sqrt(sp.sum(sp.array(cursorpos)**2)) < cfg['radius']):
                 if phase == 1:
                     phase = 2
                 if phase == 3:
@@ -416,6 +418,9 @@ def doTrial(cfg):
 
         #cfg['target'].draw()
         cfg['win'].flip()
+
+        if cfg['keyboard'][key.ESCAPE]:
+            sys.exit('escape key pressed')
 
     # make data frame and store as csv file...
 
@@ -435,8 +440,11 @@ def doTrial(cfg):
     cutime_ms = [int((t - cfg['expstart']) * 1000) for t in time_s]
     time_ms = [t - cutime_ms[0] for t in cutime_ms]
 
-    aim_deg = [cfg['aim']] * nsamples
-    aimdeviation_deg = [(cfg['aim'] - targetangle_deg[0]) % 360] * nsamples
+    aim_deg = [aim] * nsamples
+    if sp.isnan(aim):
+        aimdeviation_deg = aim_deg
+    else:
+        aimdeviation_deg = [(aim - targetangle_deg[0]) % 360] * nsamples
 
     # put all lists in dictionary:
     trialdata = {'task_idx':task_idx, 'trial_idx':trial_idx, 'cutrial_no':cutrial_no, 'doaiming_bool':doaiming_bool, 'showcursor_bool':showcursor_bool, 'usestrategy_cat':usestrategy_cat, 'targetangle_deg':targetangle_deg, 'targetx':targetx, 'targety':targety, 'cutime_ms':cutime_ms, 'time_ms':time_ms, 'mousex':mouseX, 'mousey':mouseY, 'cursorx':cursorX, 'cursory':cursorY, 'aim_deg':aim_deg, 'aimdeviation_deg':aimdeviation_deg}
