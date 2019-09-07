@@ -33,7 +33,10 @@ def runExp():
     # run the actual experiment, catch errors to cleanly exit:
     try:
 
-        doTasks(cfg)
+        cfg = doTasks(cfg)
+
+        # if completed successfully, combine all data into one file:
+        cfg = combineData(cfg)
 
     except Exception as err:
 
@@ -577,5 +580,30 @@ def doAiming(cfg):
 
     return(cfg)
 
+def combineData(cfg):
+
+    # combine all the data, store trial data in a list of dataframes:
+    trialdataframes = []
+
+    # loop through tasks:
+    for taskno in list(range(len(cfg['tasks']))):
+
+        task = cfg['tasks'][taskno]
+
+        # loop through trials:
+        for trialno in list(range(len(task['target']))):
+
+            # load trial data and store in list:
+            filename = 'data/%s/p%03d/task%02d-trial%04d.csv'%(cfg['groupname'],cfg['ID'],cfg['taskno']+1,cfg['trialno']+1)
+            trialdataframes.append(pd.read_csv(filename))
+
+    # concatenate all data frames:
+    combinedData = pd.concat(trialdataframes)
+
+    # store combined data in one file:
+    filename = 'data/%s/p%03d/COMBINED_%s_p%03d.csv'%(cfg['groupname'],cfg['ID'],cfg['groupname'],cfg['ID'])
+    combinedData.to_csv( filename, index=False, float_format='%0.5f' )
+
+    return(cfg)
 
 runExp()
