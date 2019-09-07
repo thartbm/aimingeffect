@@ -205,15 +205,19 @@ def createTasks(cfg):
     cfg['targets'] = targets
 
     # aiming arrow shouldn't be straight at the target (especially in the aligned session)
-    # 2~3 degrees looks like 0, and explicit should be between 15 - 30 degrees
-    # so we'll do 5 and 10 degree offsets at random
+    # otherwise, people will just press enter the whole time
+    # it shouldn't be too far away either, or it will take forever
+    # (unless the angle updates in the aiming tasks adapt to button-press duration)
+    # as then people will also just press enter right away
+    # 2~3 degrees looks like 0 (on 800x600 pixels), and explicit should be between 15 - 30 degrees
+    # so we'll sit in between and do 5 and 10 degree offsets at random:
     aimingoffsets = [-5,5,-10,10,-5,5,-10,10]
 
     groupno = cfg['groupno']
 
 
     # First "task" is to get instructions from experimenter:
-    taskdict = {'target':[]'rotation':[],'aiming':[], 'aimoffset':[], 'cursor':[],'instruction':'EXPERIMENTER:\ngive instructions part I','strategy':[]}
+    taskdict = {'target':[]'rotation':[],'aiming':[], 'aimoffset':[], 'cursor':[],'instruction':'EXPERIMENTER:\ngive instructions, part ONE (1)','strategy':[]}
     tasks.append(taskdict)
 
     # participant number determines the order of include / exclude tasks:
@@ -242,6 +246,14 @@ def createTasks(cfg):
 
 
     # TASK THAT INSTRUCTS THE EXPERIMENTER?
+
+
+    tasktrials = tasktrials + [0]
+    taskrotation = taskrotation + [0]
+    taskaiming = taskaiming + [False]
+    taskcursor = taskcursor + [True]
+    taskstrategy = taskstrategy + ['NA']
+    taskinstructions = taskinstructions + ['EXPERIMENTER:\ngive instructions, part TWO (2)']
 
 
 
@@ -314,9 +326,6 @@ def createTasks(cfg):
         taskdict = {'target':ttargets,'rotation':trotation,'aiming':taiming, 'aimoffset':taimdev, 'cursor':tcursor,'instruction':taskinstructions[taskno],'strategy':tstrategy}
         tasks.append(taskdict)
 
-
-    # ===== break? =====
-    # potentially tell experimentor to give instructions
 
 
     cfg['tasks'] = tasks
