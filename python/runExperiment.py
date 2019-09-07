@@ -98,6 +98,10 @@ def getParticipant(cfg, individualStimOrder=True):
         if os.path.exists(thisPath):
             if not(os.path.isdir(thisPath)):
                 sys.exit('"%s" should be a folder'%(thisPath))
+            else:
+                # if participant folder exists, don't overwrite existing data?
+                if (thisPath == 'data/%s/p%03d'%(cfg['groupname'],cfg['ID'])):
+                    sys.exit('participant already exists, but no crash recovery available')
         else:
             os.mkdir(thisPath)
 
@@ -124,8 +128,8 @@ def createEnvironment(cfg):
         os.mkdir('data')
 
     # instantiate a window object:
-    #cfg['win'] = visual.Window(fullscr=False, units='pix', waitBlanking=True, viewScale=[0.72,0.72], color=[-1,-1,-1])
-    cfg['win'] = visual.Window(fullscr=True, units='pix', waitBlanking=True, viewScale=[0.72,0.72], color=[-1,-1,-1])
+    cfg['win'] = visual.Window(fullscr=False, units='pix', waitBlanking=True, viewScale=[0.72,0.72], color=[-1,-1,-1])
+    #cfg['win'] = visual.Window(fullscr=True, units='pix', waitBlanking=True, viewScale=[0.72,0.72], color=[-1,-1,-1])
 
     # set up the workspace as a function of the size of the window:
     winSize = cfg['win'].size
@@ -196,8 +200,11 @@ def createTasks(cfg):
     # we'll put all the tasks in a list, so we can do them one by one:
     tasks = []
 
-    targets = [ta+22.5 for ta in list(range(0,360,45))]
+    offset = 22.5
+    targets = [ta+offset for ta in list(range(0,360,45))]
     cfg['targets'] = targets
+
+    aimingoffsets = [-2,2,-4,4,-8,8,-16,16]
 
     groupno = cfg['groupno']
 
@@ -227,17 +234,19 @@ def createTasks(cfg):
 
     for taskno in range(len(tasktrials)):
 
-        ttargets, trotation, taiming, tcursor, tstrategy = [], [], [], [], []
+        ttargets, trotation, taiming, taimdev, tcursor, tstrategy = [], [], [], [], [], []
 
         for iter in range(int(tasktrials[taskno]/len(targets))):
             random.shuffle(targets)
             ttargets = ttargets + targets
             trotation = trotation + list(sp.repeat(taskrotation[taskno],len(targets)))
             taiming = taiming + list(sp.repeat(taskaiming[taskno],len(targets)))
+            random.shuffle(aimingoffsets)
+            taimdev = taimdev + aimingoffsets
             tcursor = tcursor + list(sp.repeat(taskcursor[taskno],len(targets)))
             tstrategy = tstrategy + list(sp.repeat(taskstrategy[taskno],len(targets)))
 
-        taskdict = {'target':ttargets,'rotation':trotation,'aiming':taiming,'cursor':tcursor,'instruction':taskinstructions[taskno],'strategy':tstrategy}
+        taskdict = {'target':ttargets,'rotation':trotation,'aiming':taiming, 'aimoffset':taimdev, 'cursor':tcursor,'instruction':taskinstructions[taskno],'strategy':tstrategy}
         tasks.append(taskdict)
 
     # first aligned no-cursor
@@ -440,14 +449,20 @@ def doTrial(cfg):
     cutime_ms = [int((t - cfg['expstart']) * 1000) for t in time_s]
     time_ms = [t - cutime_ms[0] for t in cutime_ms]
 
+
     aim_deg = [aim] * nsamples
     if sp.isnan(aim):
         aimdeviation_deg = aim_deg
+        aimstart_deg = aim_deg
     else:
-        aimdeviation_deg = [(aim - targetangle_deg[0]) % 360] * nsamples
+        aimdeviation_deg = (aim - targetangle_deg[0]) % 360
+        if aimdeviation_deg > 180:
+            aimdeviation_deg = aimdeviation_deg - 360
+        aimdeviation_deg = [aimdeviation_deg] * nsamples
+        aimstart_deg = [targetangle_deg[0] + cfg['tasks'][cfg['taskno']]['aimoffset'][cfg['trialno']]] * nsamples
 
     # put all lists in dictionary:
-    trialdata = {'task_idx':task_idx, 'trial_idx':trial_idx, 'cutrial_no':cutrial_no, 'doaiming_bool':doaiming_bool, 'showcursor_bool':showcursor_bool, 'usestrategy_cat':usestrategy_cat, 'targetangle_deg':targetangle_deg, 'targetx':targetx, 'targety':targety, 'cutime_ms':cutime_ms, 'time_ms':time_ms, 'mousex':mouseX, 'mousey':mouseY, 'cursorx':cursorX, 'cursory':cursorY, 'aim_deg':aim_deg, 'aimdeviation_deg':aimdeviation_deg}
+    trialdata = {'task_idx':task_idx, 'trial_idx':trial_idx, 'cutrial_no':cutrial_no, 'doaiming_bool':doaiming_bool, 'aimstart_deg':aimstart_deg, 'showcursor_bool':showcursor_bool, 'usestrategy_cat':usestrategy_cat, 'targetangle_deg':targetangle_deg, 'targetx':targetx, 'targety':targety, 'cutime_ms':cutime_ms, 'time_ms':time_ms, 'mousex':mouseX, 'mousey':mouseY, 'cursorx':cursorX, 'cursory':cursorY, 'aim_deg':aim_deg, 'aimdeviation_deg':aimdeviation_deg}
 
     # make dictionary into data frame:
     trialdata = pd.DataFrame(trialdata)
@@ -463,7 +478,7 @@ def doTrial(cfg):
 def doAiming(cfg):
 
     cfg['target'].draw()
-    cfg['aim_arrow'].ori = -1 * cfg['tasks'][cfg['taskno']]['target'][cfg['trialno']]
+    cfg['aim_arrow'].ori = -1 * (cfg['tasks'][cfg['taskno']]['target'][cfg['trialno']] + cfg['tasks'][cfg['taskno']]['aimoffset'][cfg['trialno']])
     cfg['aim_arrow'].draw()
     cfg['win'].flip()
 
@@ -491,6 +506,9 @@ def doAiming(cfg):
         cfg['target'].draw()
         cfg['aim_arrow'].draw()
         cfg['win'].flip()
+
+        if cfg['keyboard'][key.ESCAPE]:
+            sys.exit('escape key pressed')
 
     #if (cfg['aim'] < 0) or (cfg['aim'] > 360):
     cfg['aim'] = cfg['aim'] % 360
