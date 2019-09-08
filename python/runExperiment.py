@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# this version of experiment is converted to be run in Python 2 and 3
+# this version of the experiment is converted to be run in Python 2 and 3
 
 from psychopy import event, visual
 #from psychopy.hardware import keyboard
@@ -238,21 +238,24 @@ def createTasks(cfg):
         strategies = strategies[::-1]
         stratinstr = stratinstr[::-1]
 
-    tasktrials = [32,8,16,8]
-    taskrotation = [0,0,0,0]
-    taskaiming = [False,False,False,False]
-    taskcursor = [True,False,True,False]
-    taskstrategy = ['NA',None,'NA',None]
+    tasktrials = [32,8,16,8,16,8]
+    taskrotation = [0,0,0,0,0,0]
+    taskaiming = [False,False,False,False,False,False]
+    taskcursor = [True,False,True,False,True,False]
+    taskstrategy = ['NA','none','NA','none','NA','none']
     taskinstructions = ['reach for target',
+                        'reach without cursor',
+                        'reach for target',
                         'reach without cursor',
                         'reach for target',
                         'reach without cursor']
     if groupno == 3:
-        taskaiming = [True,False,True,False]
+        taskaiming = [True,False,True,False,True,False]
         taskinstructions[0] = 'aim and reach for target'
         taskinstructions[2] = 'aim and reach for target'
+        taskinstructions[4] = 'aim and reach for target'
     if groupno == 5:
-        taskaiming = [False,False,True,False]
+        taskaiming = [False,False,True,False,True,False]
         taskinstructions[2] = 'aim and reach for target'
 
 
@@ -271,34 +274,61 @@ def createTasks(cfg):
     # NOW FOR THE ROTATED PARTs:
 
     if groupno in [1,2,3]:
-        tasktrials = tasktrials + [80,8,8,16,8,8]
-        taskrotation = taskrotation + [30,30,30,30,30,30]
+        tasktrials = tasktrials + [80,8,8,16,8,8,16,8,8]
+        taskrotation = taskrotation + [30,30,30,30,30,30,30,30,30]
         if groupno == 3:
-            taskaiming = taskaiming + [True,False,False,True,False,False]
+            taskaiming = taskaiming + [True,False,False,True,False,False,True,False,False]
             taskinstructions = taskinstructions + ['aim and reach for target',
                                                     stratinstr[0],
                                                     stratinstr[1],
                                                     'aim and reach for target',
                                                     stratinstr[1],
-                                                    stratinstr[0]]
+                                                    stratinstr[0],
+                                                    'aim and reach for target',
+                                                    stratinstr[0],
+                                                    stratinstr[1]]
         else:
-            taskaiming = taskaiming + [False,False,False,False,False,False]
+            taskaiming = taskaiming + [False,False,False,False,False,False,False,False,False]
             taskinstructions = taskinstructions + ['reach for target',
                                                     stratinstr[0],
                                                     stratinstr[1],
                                                     'reach for target',
                                                     stratinstr[1],
-                                                    stratinstr[0]]
-        taskcursor = taskcursor + [True,False,False,True,False,False]
-        taskstrategy = taskstrategy + ['NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0]]
-
-    if groupno == 4: # early PDP
-        tasktrials = tasktrials + [8,8,8,72,8,8,16,8,8]
-        taskrotation = taskrotation + [30,30,30,30,30,30,30,30,30]
-        taskaiming = taskaiming + [False,False,False,False,False,False,False,False,False]
+                                                    stratinstr[0],
+                                                    'reach for target',
+                                                    stratinstr[0],
+                                                    stratinstr[1]]
         taskcursor = taskcursor + [True,False,False,True,False,False,True,False,False]
         taskstrategy = taskstrategy + ['NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0],'NA',strategies[0],strategies[1]]
+
+    if groupno == 4: # early PDP
+        tasktrials = tasktrials + [8,8,8,72,8,8,16,8,8,16,8,8]
+        taskrotation = taskrotation + [30,30,30,30,30,30,30,30,30,30,30,30]
+        taskaiming = taskaiming + [False,False,False,False,False,False,False,False,False,False,False,False]
+        taskcursor = taskcursor + [True,False,False,True,False,False,True,False,False,True,False,False]
+        taskstrategy = taskstrategy + ['NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0],'NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0]]
         taskinstructions = taskinstructions + ['reach for target',
+                                                stratinstr[0],
+                                                stratinstr[1],
+                                                'reach for target',
+                                                stratinstr[1],
+                                                stratinstr[0],
+                                                'reach for target',
+                                                stratinstr[0],
+                                                stratinstr[1],
+                                                'reach for target',
+                                                stratinstr[1],
+                                                stratinstr[0]]
+
+    if groupno == 5: # early aiming
+        tasktrials = tasktrials + [8,8,64,8,8,16,8,8,16,8,8]
+        taskrotation = taskrotation + [30,30,30,30,30,30,30,30,30,30,30]
+        taskaiming = taskaiming + [False,False,False,False,False,False,False,False,False,False,False,False]
+        taskcursor = taskcursor + [True,True,True,False,False,True,False,False,True,False,False]
+        taskstrategy = taskstrategy + ['NA','NA','NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0],'NA',strategies[0],strategies[1]]
+        taskinstructions = taskinstructions + ['reach for target',
+                                                'aim and reach for target',
+                                                'reach for target',
                                                 stratinstr[0],
                                                 stratinstr[1],
                                                 'reach for target',
@@ -307,21 +337,6 @@ def createTasks(cfg):
                                                 'reach for target',
                                                 stratinstr[0],
                                                 stratinstr[1]]
-
-    if groupno == 5: # early aiming
-        tasktrials = tasktrials + [8,8,64,8,8,16,8,8]
-        taskrotation = taskrotation + [30,30,30,30,30,30,30,30]
-        taskaiming = taskaiming + [False,False,False,False,False,False,False,False,False]
-        taskcursor = taskcursor + [True,True,True,False,False,True,False,False]
-        taskstrategy = taskstrategy + ['NA','NA','NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0]]
-        taskinstructions = taskinstructions + ['reach for target',
-                                                'aim and reach for target',
-                                                'reach for target',
-                                                stratinstr[0],
-                                                stratinstr[1],
-                                                'reach for target',
-                                                stratinstr[1],
-                                                stratinstr[0]]
 
 
 
@@ -411,8 +426,12 @@ def doTrial(cfg):
     targetpos = [sp.cos(targetangle)*cfg['targetdistance'], sp.sin(targetangle)*cfg['targetdistance']]
     cfg['target'].pos = targetpos
 
+    # hold home before reach:
+    holdTime = 0.5
+
     # phase 0: do pre-reach aiming if required:
-    if cfg['tasks'][cfg['taskno']]['aiming'][cfg['trialno']]:
+    doAim = cfg['tasks'][cfg['taskno']]['aiming'][cfg['trialno']]
+    if doAim:
 
         cfg = doAiming(cfg)
         aim = cfg['aim']
@@ -421,6 +440,10 @@ def doTrial(cfg):
 
         # if not required: set to correct value for data file:
         aim = sp.NaN
+
+        # how long does one aiming trial take?
+        holdTime = holdTime + 1.5
+
 
     # trials need to know whether or not there is a cursor
     showcursor = cfg['tasks'][cfg['taskno']]['cursor'][cfg['trialno']]
@@ -433,9 +456,8 @@ def doTrial(cfg):
     theta = (rotation/180.)*sp.pi
     R = sp.array([[sp.cos(theta),-1*sp.sin(theta)],[sp.sin(theta),sp.cos(theta)]],order='C')
 
-
     trialDone = False
-    phase = 1
+    phase = 0
 
     # create lists to store data in:
     mouseX = []
@@ -473,7 +495,19 @@ def doTrial(cfg):
                     if distance < (0.01 * cfg['NSU']):
                         phase = 3
 
-        if (phase == 1) or (phase == 3):
+        if (phase == 1):
+            #cfg['home'].draw()
+            cfg['cursor'].draw()
+            if (time.time() > (phaseOneStart + holdTime)):
+                # held the home position for long enough, going to phase 2:
+                phase = 2
+            if (sp.sqrt(sp.sum(sp.array(cursorpos)**2)) > cfg['radius']):
+                # hold not maintained, restart phase 0:
+                phase = 0
+
+
+
+        if (phase == 0) or (phase == 3):
             cfg['home'].draw()
             if showcursor:
                 cfg['cursor'].draw()
@@ -489,8 +523,9 @@ def doTrial(cfg):
                     cfg['home_arrow'].draw()
             #print([sp.sqrt(sp.sum(sp.array(cursorpos)**2)), (0.025 * cfg['NSU'])])
             if (sp.sqrt(sp.sum(sp.array(cursorpos)**2)) < cfg['radius']):
-                if phase == 1:
-                    phase = 2
+                if phase == 0:
+                    phase = 1
+                    phaseOneStart = time.time()
                 if phase == 3:
                     trialDone = True
 
