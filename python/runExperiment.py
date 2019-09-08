@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# this experiment is written to be run in Python 3
+# this version of experiment is converted to be run in Python 2 and 3
 
 from psychopy import event, visual
 #from psychopy.hardware import keyboard
@@ -62,15 +62,19 @@ def getParticipant(cfg, individualStimOrder=True):
         # and try to see if we can convert it to an integer
         try:
             groupno = int(group)
-            # and if that integer really reflects the input
-            if (group == '%d'%(groupno)):
-                # and is a number 1, 2, 3, 4, or 5...
-                if (groupno in [1,2,3,4,5]):
-                    # only then are we satisfied:
-                    GroupNotANumber = False
-                    # and store this in the cfg
-                    cfg['groupno'] = groupno
-                    cfg['groupname'] = ['non-instructed','instructed','aiming','early_PDP','early_aiming'][groupno-1]
+            if isinstance(group, int):
+                pass # in python 2, you get an int from input()
+            if isinstance(group, str):
+                # in python 3 you get a str, so we test if it converts correctly
+                if not(group == '%d'%(groupno)):
+                    continue
+            # and is a number 1, 2, 3, 4, or 5...
+            if (groupno in [1,2,3,4,5]):
+                # only then are we satisfied:
+                GroupNotANumber = False
+                # and store this in the cfg
+                cfg['groupno'] = groupno
+                cfg['groupname'] = ['non-instructed','instructed','aiming','early_PDP','early_aiming'][groupno-1]
         except Exception as err:
             # if it all doesn't work, we ask for input again...
             print(err)
@@ -86,12 +90,16 @@ def getParticipant(cfg, individualStimOrder=True):
         # and try to see if we can convert it to an integer
         try:
             IDno = int(ID)
+            if isinstance(ID, int):
+                pass # everything is already good
             # and if that integer really reflects the input
-            if (ID == '%d'%(IDno)):
-                # only then are we satisfied:
-                IDnotANumber = False
-                # and store this in the cfg
-                cfg['ID'] = IDno
+            if isinstance(ID, str):
+                if not(ID == '%d'%(IDno)):
+                    continue
+            # only then are we satisfied:
+            IDnotANumber = False
+            # and store this in the cfg
+            cfg['ID'] = IDno
         except:
             # if it all doesn't work, we ask for input again...
             pass
@@ -160,10 +168,10 @@ def createEnvironment(cfg):
 
     cfg['instruction'] = visual.TextStim(win=cfg['win'], text='', pos=[0,0], colorSpace='rgb', color='#999999', flipVert=True)
 
-    arrowvertices = ((-.33,-.33),(4.33,-.33),(4,-1),(6,0),(4,1),(4.33,.33),(-.33,.33))
+    arrowvertices = ((-.33,-.33),(6.33,-.33),(6,-1),(8,0),(6,1),(6.33,.33),(-.33,.33))
     cfg['aim_arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=0, lineColorSpace='rgb', lineColor='#CC00CC', fillColorSpace='rgb', fillColor='#CC00CC', vertices=arrowvertices, closeShape=True, size=cfg['NSU']*(0.2/6))
 
-    arrowvertices = ((-.4,-.4),(.8,0),(-.4,.4),(0,0))
+    arrowvertices = ((-.3,-.6),(.8,0),(-.3,.6),(0,0))
     cfg['home_arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=1, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor='#999999', vertices=arrowvertices, closeShape=True, size=cfg['radius'])
 
     # set up 'mouse' object to track reaches:
@@ -538,7 +546,7 @@ def doTrial(cfg):
                  'usestrategy_cat':usestrategy_cat,
                  'aim_deg':aim_deg,
                  'aimdeviation_deg':aimdeviation_deg,
-                 'aimtime_ms':aimtime_ms, 
+                 'aimtime_ms':aimtime_ms,
                  'cutime_ms':cutime_ms,
                  'time_ms':time_ms,
                  'mousex':mouseX,
