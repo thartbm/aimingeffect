@@ -499,13 +499,13 @@ def doTrial(cfg):
     task_idx = [cfg['taskno']+1] * nsamples
     trial_idx = [cfg['trialno']+1] * nsamples
     cutrial_no = [cfg['totrialno']+1] * nsamples
-    doaiming_bool = [cfg['tasks'][cfg['taskno']]['aiming'][cfg['trialno']]] * nsamples
-    showcursor_bool = [showcursor] * nsamples
-    # includestrategy_cat !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    usestrategy_cat = [usestrategy] * nsamples
     targetangle_deg = [targetangle_deg] * nsamples
     targetx = [targetpos[0]] * nsamples
     targety = [targetpos[1]] * nsamples
+    rotation_deg = [rotation] * nsamples
+    doaiming_bool = [cfg['tasks'][cfg['taskno']]['aiming'][cfg['trialno']]] * nsamples
+    showcursor_bool = [showcursor] * nsamples
+    usestrategy_cat = [usestrategy] * nsamples
 
     cutime_ms = [int((t - cfg['expstart']) * 1000) for t in time_s]
     time_ms = [t - cutime_ms[0] for t in cutime_ms]
@@ -515,16 +515,36 @@ def doTrial(cfg):
     if sp.isnan(aim):
         aimdeviation_deg = aim_deg
         aimstart_deg = aim_deg
+        aimtime_ms = aim_deg
     else:
         aimdeviation_deg = (aim - targetangle_deg[0]) % 360
         if aimdeviation_deg > 180:
             aimdeviation_deg = aimdeviation_deg - 360
         aimdeviation_deg = [aimdeviation_deg] * nsamples
         aimstart_deg = [targetangle_deg[0] + cfg['tasks'][cfg['taskno']]['aimoffset'][cfg['trialno']]] * nsamples
+        aimtime_ms = [cfg['aimtime_ms']] * nsamples
 
     # put all lists in dictionary:
-    trialdata = {'task_idx':task_idx, 'trial_idx':trial_idx, 'cutrial_no':cutrial_no, 'doaiming_bool':doaiming_bool, 'aimstart_deg':aimstart_deg, 'showcursor_bool':showcursor_bool, 'usestrategy_cat':usestrategy_cat, 'targetangle_deg':targetangle_deg, 'targetx':targetx, 'targety':targety, 'cutime_ms':cutime_ms, 'time_ms':time_ms, 'mousex':mouseX, 'mousey':mouseY, 'cursorx':cursorX, 'cursory':cursorY, 'aim_deg':aim_deg, 'aimdeviation_deg':aimdeviation_deg}
-
+    trialdata = {'task_idx':task_idx,
+                 'trial_idx':trial_idx,
+                 'cutrial_no':cutrial_no,
+                 'targetangle_deg':targetangle_deg,
+                 'targetx':targetx,
+                 'targety':targety,
+                 'rotation_deg':rotation_deg,
+                 'doaiming_bool':doaiming_bool,
+                 'aimstart_deg':aimstart_deg,
+                 'showcursor_bool':showcursor_bool,
+                 'usestrategy_cat':usestrategy_cat,
+                 'aim_deg':aim_deg,
+                 'aimdeviation_deg':aimdeviation_deg,
+                 'aimtime_ms':aimtime_ms, 
+                 'cutime_ms':cutime_ms,
+                 'time_ms':time_ms,
+                 'mousex':mouseX,
+                 'mousey':mouseY,
+                 'cursorx':cursorX,
+                 'cursory':cursorY}
     # make dictionary into data frame:
     trialdata = pd.DataFrame(trialdata)
 
@@ -538,6 +558,9 @@ def doTrial(cfg):
 
 def doAiming(cfg):
 
+    cfg['aim'] = sp.NaN
+    cfg['aimtime_ms'] = sp.NaN
+
     cfg['target'].draw()
     cfg['aim_arrow'].ori = -1 * (cfg['tasks'][cfg['taskno']]['target'][cfg['trialno']] + cfg['tasks'][cfg['taskno']]['aimoffset'][cfg['trialno']])
     cfg['aim_arrow'].draw()
@@ -547,12 +570,15 @@ def doAiming(cfg):
 
     event.clearEvents()
 
+    startaiming = time.time()
+
     while(not(aimDecided)):
 
         keys = event.getKeys(keyList=['num_enter'])
         if ('num_enter' in keys):
             cfg['aim'] = -1 * cfg['aim_arrow'].ori
             aimDecided = True
+            stopaiming = time.time()
 
         if cfg['keyboard'][key.NUM_LEFT]:
             cfg['aim_arrow'].ori = cfg['aim_arrow'].ori - 1
@@ -573,6 +599,7 @@ def doAiming(cfg):
 
     #if (cfg['aim'] < 0) or (cfg['aim'] > 360):
     cfg['aim'] = cfg['aim'] % 360
+    cfg['aimtime_ms'] = int((stopaiming - startaiming) * 1000)
 
     #print(cfg['tasks'][cfg['taskno']]['target'][cfg['trialno']])
     #print(cfg['aim'])
@@ -594,7 +621,7 @@ def combineData(cfg):
         for trialno in list(range(len(task['target']))):
 
             # load trial data and store in list:
-            filename = 'data/%s/p%03d/task%02d-trial%04d.csv'%(cfg['groupname'],cfg['ID'],cfg['taskno']+1,cfg['trialno']+1)
+            filename = 'data/%s/p%03d/task%02d-trial%04d.csv'%(cfg['groupname'],cfg['ID'],taskno+1,trialno+1)
             trialdataframes.append(pd.read_csv(filename))
 
     # concatenate all data frames:
