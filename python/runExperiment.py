@@ -131,7 +131,9 @@ def createEnvironment(cfg):
 
     cfg['homepos'] = [0,0]
 
-    cfg['targetangles'] = [((ta+22.5)/180)*sp.pi for ta in list(range(0,360,45))]
+    #cfg['targetangles'] = [((ta+22.5)/180)*sp.pi for ta in list(range(0,360,45))]
+    # going back to the targets used in Bod & Taylor 2015:
+    cfg['targetangles'] = [((ta+0)/180)*sp.pi for ta in list(range(0,360,45))]
 
     # need to check if the folder for data is there:
     if not(os.path.isdir('data%s'%os.path.sep)):
