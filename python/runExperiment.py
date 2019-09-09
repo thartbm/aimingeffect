@@ -140,7 +140,7 @@ def createEnvironment(cfg):
 
     # instantiate a window object:
     # optimal settings for our mirror tablet-setup
-    # the view scale ensures 8 cm on the tablet is equal to 8 cm on the screen 
+    # the view scale ensures 8 cm on the tablet is equal to 8 cm on the screen
     cfg['win'] = visual.Window(fullscr=True, units='pix', waitBlanking=False, viewScale=[0.72,-0.72], color=[-1,-1,-1])
 
     # for testing on non-mirrored setup:
@@ -161,24 +161,24 @@ def createEnvironment(cfg):
 
     cfg['targetdistance'] = cfg['NSU']
 
-    cfg['radius'] = cfg['NSU']*0.05
+    cfg['radius'] = PPC*0.25
 
     # set up visual objects for use in experiment:
-    cfg['home'] = visual.Circle(win=cfg['win'], pos=cfg['homepos'], radius=cfg['radius'], lineWidth=cfg['radius']/5, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
+    cfg['home'] = visual.Circle(win=cfg['win'], pos=cfg['homepos'], radius=cfg['radius'], lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
 
-    cfg['cursor'] = visual.Circle(win=cfg['win'], radius=cfg['radius'], lineWidth=cfg['radius']/5, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor='#999999')
+    cfg['cursor'] = visual.Circle(win=cfg['win'], radius=cfg['radius'], lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor='#999999')
 
-    cfg['target'] = visual.Circle(win=cfg['win'], radius=cfg['radius'], lineWidth=cfg['radius']/5, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
+    cfg['target'] = visual.Circle(win=cfg['win'], radius=cfg['radius'], lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None)
 
     cfg['instruction'] = visual.TextStim(win=cfg['win'], text='', pos=[0,0], colorSpace='rgb', color='#999999', flipVert=True)
 
     #arrowvertices = ((-.33,-.33),(6.33,-.33),(6,-1),(8,0),(6,1),(6.33,.33),(-.33,.33))
-    arrowvertices = ((-.03,-.03),(0.83,-.03),(0.8,-.1),(1,0),(0.8,.1),(0.83,.03),(-.03,.03))
+    arrowvertices = ((-.02,-.02),(0.82,-.02),(0.8,-.08),(1,0),(0.8,.08),(0.82,.02),(-.02,.02))
 
-    cfg['aim_arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=cfg['NSU']*0.01, lineColorSpace='rgb', lineColor='#CC00CC', fillColorSpace='rgb', fillColor=None, vertices=arrowvertices, closeShape=True, size=PPC*7)
+    cfg['aim_arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#CC00CC', fillColorSpace='rgb', fillColor=None, vertices=arrowvertices, closeShape=True, size=PPC*7)
 
     arrowvertices = ((-.3,-.6),(.8,0),(-.3,.6),(0,0))
-    cfg['home_arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=1, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor='#999999', vertices=arrowvertices, closeShape=True, size=cfg['radius'])
+    cfg['home_arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None, vertices=arrowvertices, closeShape=True, size=cfg['radius'])
 
     # set up 'mouse' object to track reaches:
     class myMouse:
