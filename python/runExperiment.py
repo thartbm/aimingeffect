@@ -139,10 +139,10 @@ def createEnvironment(cfg):
     # instantiate a window object:
     # optimal settings for our mirror tablet-setup
     # the view scale ensures 8 cm on the tablet is equal to 8 cm on the screen
-    cfg['win'] = visual.Window(fullscr=True, units='pix', waitBlanking=False, viewScale=[0.72,-0.72], color=[-1,-1,-1])
+    #cfg['win'] = visual.Window(fullscr=True, units='pix', waitBlanking=False, viewScale=[0.72,-0.72], color=[-1,-1,-1])
 
     # for testing on non-mirrored setup:
-    #cfg['win'] = visual.Window(fullscr=False, units='pix', waitBlanking=True, viewScale=[1,1], color=[-1,-1,-1])
+    cfg['win'] = visual.Window(fullscr=True, units='pix', waitBlanking=True, viewScale=[1,1], color=[-1,-1,-1])
 
     # set up the workspace as a function of the size of the window:
     winSize = cfg['win'].size
@@ -175,8 +175,51 @@ def createEnvironment(cfg):
 
     cfg['aim_arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#CC00CC', fillColorSpace='rgb', fillColor=None, vertices=arrowvertices, closeShape=True, size=PPC*7)
 
-    arrowvertices = ((-.3,-.6),(.8,0),(-.3,.6),(0,0))
-    cfg['home_arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None, vertices=arrowvertices, closeShape=True, size=cfg['radius'])
+    #arrowvertices = ((-.3,-.6),(.8,0),(-.3,.6),(0,0))
+    #cfg['home_arrow'] = visual.ShapeStim(win=cfg['win'], lineWidth=cfg['NSU']*0.005, lineColorSpace='rgb', lineColor='#999999', fillColorSpace='rgb', fillColor=None, vertices=arrowvertices, closeShape=True, size=cfg['radius'])
+
+    # older psychopy ShapeStims can't deal with concavities if filled,
+    # so putting two ShapeStims in one object:
+    class myHomeArrow:
+
+        def __init__(self,cfg,ori=0,color='#999999',size=1):
+            self.ori = ori
+            self.color = color
+            self.size = size
+            self.rightArrow = visual.ShapeStim(win=cfg['win'],
+                                              lineWidth=0,
+                                              lineColorSpace='rgb',
+                                              lineColor=None,
+                                              fillColorSpace='rgb',
+                                              fillColor=self.color,
+                                              closeShape=True,
+                                              size=self.size,
+                                              ori=self.ori,
+                                              vertices=((-.1,0),(.8,0),(-.4,-.6))
+                                              )
+            self.leftArrow = visual.ShapeStim(win=cfg['win'],
+                                              lineWidth=0,
+                                              lineColorSpace='rgb',
+                                              lineColor=None,
+                                              fillColorSpace='rgb',
+                                              fillColor=self.color,
+                                              closeShape=True,
+                                              size=self.size,
+                                              ori=self.ori,
+                                              vertices=((-.1,0),(.8,0),(-.4,.6))
+                                              )
+
+        def draw(self):
+            self.rightArrow.ori = self.ori
+            self.leftArrow.ori = self.ori
+            self.rightArrow.fillColor = self.color
+            self.leftArrow.fillColor = self.color
+            self.rightArrow.size = self.size
+            self.leftArrow.size = self.size
+            self.rightArrow.draw()
+            self.leftArrow.draw()
+
+    cfg['home_arrow'] = myHomeArrow(cfg,size=cfg['radius']*1.2)
 
     # set up 'mouse' object to track reaches:
     class myMouse:
@@ -248,6 +291,7 @@ def createTasks(cfg):
     taskrotation = [0,0,0,0,0,0]
     taskaiming = [False,False,False,False,False,False]
     taskcursor = [True,False,True,False,True,False]
+    taskcursor = [False,False,True,False,True,False]
     taskstrategy = ['NA','none','NA','none','NA','none']
     taskinstructions = ['reach for target',
                         'reach without cursor',
