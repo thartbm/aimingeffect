@@ -195,7 +195,7 @@ def createEnvironment(cfg):
                                               closeShape=True,
                                               size=self.size,
                                               ori=self.ori,
-                                              vertices=((-.1,0),(.8,0),(-.4,-.6))
+                                              vertices=((-.1,0),(.9,0),(-.636,-.636))
                                               )
             self.leftArrow = visual.ShapeStim(win=cfg['win'],
                                               lineWidth=0,
@@ -206,7 +206,7 @@ def createEnvironment(cfg):
                                               closeShape=True,
                                               size=self.size,
                                               ori=self.ori,
-                                              vertices=((-.1,0),(.8,0),(-.4,.6))
+                                              vertices=((-.1,0),(.9,0),(-.636,.636))
                                               )
 
         def draw(self):
@@ -219,7 +219,7 @@ def createEnvironment(cfg):
             self.rightArrow.draw()
             self.leftArrow.draw()
 
-    cfg['home_arrow'] = myHomeArrow(cfg,size=cfg['radius']*1.2)
+    cfg['home_arrow'] = myHomeArrow(cfg,size=cfg['radius'])
 
     # set up 'mouse' object to track reaches:
     class myMouse:
