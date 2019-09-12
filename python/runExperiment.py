@@ -69,12 +69,13 @@ def getParticipant(cfg, individualStimOrder=True):
                 if not(group == '%d'%(groupno)):
                     continue
             # and is a number 1, 2, 3, 4, or 5...
-            if (groupno in [1,2,3,4,5]):
+            # or 6
+            if (groupno in [1,2,3,4,5,6]):
                 # only then are we satisfied:
                 GroupNotANumber = False
                 # and store this in the cfg
                 cfg['groupno'] = groupno
-                cfg['groupname'] = ['non-instructed','instructed','aiming','early_PDP','early_aiming'][groupno-1]
+                cfg['groupname'] = ['non-instructed','instructed','aiming','early_PDP','early_aiming','instructed_aiming'][groupno-1]
         except Exception as err:
             # if it all doesn't work, we ask for input again...
             print(err)
@@ -100,7 +101,8 @@ def getParticipant(cfg, individualStimOrder=True):
             IDnotANumber = False
             # and store this in the cfg
             cfg['ID'] = IDno
-        except:
+        except Exception as err:
+            print(err)
             # if it all doesn't work, we ask for input again...
             pass
 
@@ -324,7 +326,7 @@ def createTasks(cfg):
     # NOW FOR THE ROTATED PARTs:
 
     if groupno in [1,2,3]:
-        tasktrials = tasktrials + [80,8,8,16,8,8,16,8,8]
+        tasktrials = tasktrials + [96,8,8,16,8,8,16,8,8]
         taskrotation = taskrotation + [30,30,30,30,30,30,30,30,30]
         if groupno == 3:
             taskaiming = taskaiming + [True,False,False,True,False,False,True,False,False]
@@ -352,7 +354,7 @@ def createTasks(cfg):
         taskstrategy = taskstrategy + ['NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0],'NA',strategies[0],strategies[1]]
 
     if groupno == 4: # early PDP
-        tasktrials = tasktrials + [8,8,8,72,8,8,16,8,8,16,8,8]
+        tasktrials = tasktrials + [8,8,8,88,8,8,16,8,8,16,8,8]
         taskrotation = taskrotation + [30,30,30,30,30,30,30,30,30,30,30,30]
         taskaiming = taskaiming + [False,False,False,False,False,False,False,False,False,False,False,False]
         taskcursor = taskcursor + [True,False,False,True,False,False,True,False,False,True,False,False]
@@ -371,7 +373,7 @@ def createTasks(cfg):
                                                 stratinstr[0]]
 
     if groupno == 5: # early aiming
-        tasktrials = tasktrials + [8,8,64,8,8,16,8,8,16,8,8]
+        tasktrials = tasktrials + [8,8,80,8,8,16,8,8,16,8,8]
         taskrotation = taskrotation + [30,30,30,30,30,30,30,30,30,30,30]
         taskaiming = taskaiming + [False,False,False,False,False,False,False,False,False,False,False,False]
         taskcursor = taskcursor + [True,True,True,False,False,True,False,False,True,False,False]
@@ -388,7 +390,26 @@ def createTasks(cfg):
                                                 stratinstr[0],
                                                 stratinstr[1]]
 
-
+    if groupno == 6: # aiming + extra instructions
+        tasktrials = tasktrials + [0,32,32,32,8,8,0,16,8,8,0,16,8,8]
+        taskrotation = taskrotation + [30,30,30,30,30,30,30,30,30,30,30,30,30,30]
+        taskaiming = taskaiming + [False,True,True,True,False,False,False,True,False,False,False,True,False,False]
+        taskcursor = taskcursor + [True,True,True,True,False,False,True,True,False,False,True,True,False,False]
+        taskstrategy = taskstrategy + ['NA','NA','NA','NA',strategies[0],strategies[1],'NA','NA',strategies[1],strategies[0],'NA','NA',strategies[0],strategies[1]]
+        taskinstructions = taskinstructions + [ 'aim and reach for target',
+                                                'reminder:\n\nthe goal of the task is to get the cursor on the target,\n\nalways aiming directly at the target may not be effective',
+                                                'reminder:\n\nthe goal of the task is to get the cursor on the target,\n\nalways aiming directly at the target may not be effective',
+                                                'reminder:\n\nthe goal of the task is to get the cursor on the target,\n\nalways aiming directly at the target may not be effective',
+                                                stratinstr[0],
+                                                stratinstr[1],
+                                                'aim and reach for target',
+                                                'reminder:\n\nthe goal of the task is to get the cursor on the target,\n\nalways aiming directly at the target may not be effective',
+                                                stratinstr[1],
+                                                stratinstr[0],
+                                                'aim and reach for target',
+                                                'reminder:\n\nthe goal of the task is to get the cursor on the target,\n\nalways aiming directly at the target may not be effective',
+                                                stratinstr[0],
+                                                stratinstr[1]]
 
 
     for taskno in range(len(tasktrials)):
