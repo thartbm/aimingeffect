@@ -57,7 +57,7 @@ def getParticipant(cfg, individualStimOrder=True):
     # and we will only be happy when this is the case:
     while (GroupNotANumber):
         # we ask for input:
-        print('1: non-instructed\n2: instructed\n3: aiming\n4: early PDP\n5: early aiming')
+        print('1: non-instructed\n2: instructed\n3: aiming\n4: early PDP\n5: early aiming\n6: instructed aiming')
         group = input('Enter group number: ')
         # and try to see if we can convert it to an integer
         try:
@@ -293,7 +293,7 @@ def createTasks(cfg):
     taskrotation = [0,0,0,0,0,0]
     taskaiming = [False,False,False,False,False,False]
     taskcursor = [True,False,True,False,True,False]
-    taskcursor = [False,False,True,False,True,False]
+    #taskcursor = [False,False,True,False,True,False]
     taskstrategy = ['NA','none','NA','none','NA','none']
     taskinstructions = ['reach for target',
                         'reach without cursor',
@@ -301,7 +301,7 @@ def createTasks(cfg):
                         'reach without cursor',
                         'reach for target',
                         'reach without cursor']
-    if groupno == 3:
+    if groupno in [3,6]:
         taskaiming = [True,False,True,False,True,False]
         taskinstructions[0] = 'aim and reach for target'
         taskinstructions[2] = 'aim and reach for target'
