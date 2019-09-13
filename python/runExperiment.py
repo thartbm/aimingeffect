@@ -141,10 +141,10 @@ def createEnvironment(cfg):
     # instantiate a window object:
     # optimal settings for our mirror tablet-setup
     # the view scale ensures 8 cm on the tablet is equal to 8 cm on the screen
-    #cfg['win'] = visual.Window(fullscr=True, units='pix', waitBlanking=False, viewScale=[0.72,-0.72], color=[-1,-1,-1])
+    cfg['win'] = visual.Window(fullscr=True, units='pix', waitBlanking=False, viewScale=[0.72,-0.72], color=[-1,-1,-1])
 
     # for testing on non-mirrored setup:
-    cfg['win'] = visual.Window(fullscr=True, units='pix', waitBlanking=True, viewScale=[1,1], color=[-1,-1,-1])
+    #cfg['win'] = visual.Window(fullscr=True, units='pix', waitBlanking=True, viewScale=[1,1], color=[-1,-1,-1])
 
     # set up the workspace as a function of the size of the window:
     winSize = cfg['win'].size
