@@ -327,7 +327,7 @@ def createTasks(cfg):
 
     if groupno in [1,2,3]:
         tasktrials = tasktrials + [96,8,8,16,8,8,16,8,8]
-        taskrotation = taskrotation + [30,30,30,30,30,30,30,30,30]
+        taskrotation = taskrotation + [-30,-30,-30,-30,-30,-30,-30,-30,-30]
         if groupno == 3:
             taskaiming = taskaiming + [True,False,False,True,False,False,True,False,False]
             taskinstructions = taskinstructions + ['aim and reach for target',
@@ -355,7 +355,7 @@ def createTasks(cfg):
 
     if groupno == 4: # early PDP
         tasktrials = tasktrials + [8,8,8,88,8,8,16,8,8,16,8,8]
-        taskrotation = taskrotation + [30,30,30,30,30,30,30,30,30,30,30,30]
+        taskrotation = taskrotation + [-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30]
         taskaiming = taskaiming + [False,False,False,False,False,False,False,False,False,False,False,False]
         taskcursor = taskcursor + [True,False,False,True,False,False,True,False,False,True,False,False]
         taskstrategy = taskstrategy + ['NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0],'NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0]]
@@ -374,7 +374,7 @@ def createTasks(cfg):
 
     if groupno == 5: # early aiming
         tasktrials = tasktrials + [8,8,80,8,8,16,8,8,16,8,8]
-        taskrotation = taskrotation + [30,30,30,30,30,30,30,30,30,30,30]
+        taskrotation = taskrotation + [-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30]
         taskaiming = taskaiming + [False,False,False,False,False,False,False,False,False,False,False,False]
         taskcursor = taskcursor + [True,True,True,False,False,True,False,False,True,False,False]
         taskstrategy = taskstrategy + ['NA','NA','NA',strategies[0],strategies[1],'NA',strategies[1],strategies[0],'NA',strategies[0],strategies[1]]
@@ -392,7 +392,7 @@ def createTasks(cfg):
 
     if groupno == 6: # aiming + extra instructions
         tasktrials = tasktrials + [0,32,32,32,8,8,0,16,8,8,0,16,8,8]
-        taskrotation = taskrotation + [30,30,30,30,30,30,30,30,30,30,30,30,30,30]
+        taskrotation = taskrotation + [-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30]
         taskaiming = taskaiming + [False,True,True,True,False,False,False,True,False,False,False,True,False,False]
         taskcursor = taskcursor + [True,True,True,True,False,False,True,True,False,False,True,True,False,False]
         taskstrategy = taskstrategy + ['NA','NA','NA','NA',strategies[0],strategies[1],'NA','NA',strategies[1],strategies[0],'NA','NA',strategies[0],strategies[1]]
